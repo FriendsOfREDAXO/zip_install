@@ -1,0 +1,18 @@
+package: zip_install
+version: '1.0.0-beta1'
+author: Friends Of REDAXO
+supportpage: github.com/FriendsOfREDAXO/zip_install
+
+requires:
+    packages:
+        install: '^2.1'
+    redaxo: '^5.0' # benötigt mindestens REDAXO 5.0
+
+    php:
+        version: '>=5.6' # benötigt mindestens PHP 5.6
+        extensions: [zlib, fileinfo] # benötigt die PHP-Extensions zip
+
+pages:
+    install/packages/zip_upload:
+        title: translate:title
+perm: admin
