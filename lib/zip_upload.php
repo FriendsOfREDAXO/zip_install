@@ -1,4 +1,11 @@
 <?php
+/**
+ * media_manager_autorewrite Addon.
+ *
+ * @author Friends Of REDAXO
+ *
+ * @var rex_addon
+ */
 
 use Alchemy\Zippy\Zippy;
 
@@ -58,9 +65,6 @@ class zip_upload
                         // extract into tmp folder
                         $archive->extract(rex_path::addon('zip_install','tmp'));
 
-                        // delete tmp uploaded zip-file
-                        @unlink($results['full_path']);
-
                         // delete garbage
                         rex_dir::delete(rex_path::addon('zip_install','tmp/__MACOSX'));
                         rex_dir::delete(rex_path::addon('zip_install','tmp/.git'));
@@ -111,9 +115,12 @@ class zip_upload
                         $error = true;
                     }
 
-                } catch (Exception $e) {
-                }
+                } catch (Exception $e) {}
+
+                // delete tmp uploaded zip-file
+                @unlink($results['full_path']);
             }
+
 
             if (!$error)
             {
