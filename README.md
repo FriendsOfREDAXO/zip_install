@@ -1,4 +1,4 @@
-# zip_install
+# REDAXO ZIP-Upload AddOn und Plugin Install!
 Mit diesem AddOn kannst du gezippte AddOns oder Plugins einfach im Backend hochladen und installieren.
 
 ![Screenshot](https://raw.githubusercontent.com/FriendsOfREDAXO/zip_install/assets/screenshot.png)
