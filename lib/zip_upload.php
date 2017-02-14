@@ -23,6 +23,8 @@ class zip_upload
             if ($results['status'] === true)
             {
                 $error = false;
+                $parentIsMissing = false;
+                $isPlugin = false;
                 $foldername = '';
                 $packageFile = false;
                 $zippy = Zippy::load();
@@ -59,14 +61,46 @@ class zip_upload
                         // delete tmp uploaded zip-file
                         @unlink($results['full_path']);
 
+                        // delete garbage
+                        rex_dir::delete(rex_path::addon('zip_install','tmp/__MACOSX'));
+                        rex_dir::delete(rex_path::addon('zip_install','tmp/.git'));
+                        rex_dir::delete(rex_path::addon('zip_install','tmp/.gitignore'));
+                        rex_dir::delete(rex_path::addon('zip_install','tmp/thumbs.db'));
+
+
                         $config = rex_file::getConfig(rex_path::addon('zip_install','tmp/'.$foldername).'package.yml');
                         if($config['package'])
                         {
-                            // just check if its writeable / or if it actually exist
-                            if(!rex_dir::copy(rex_path::addon('zip_install','tmp/'.$foldername), rex_path::addon($config['package'])))
-                            {
-                                $error = true;
+                            $pluginCheck = explode('/', $config['package']);
+
+                            if(count($pluginCheck) > 1) {
+                                $isPlugin = true;
+                                // check if parent exists
+                                if(rex_dir::isWritable(rex_path::addon($pluginCheck[0])))
+                                {
+                                    // its a plugin, it should have a parent
+                                    if(!rex_dir::copy(rex_path::addon('zip_install','tmp/'.$foldername), rex_path::addon($pluginCheck[0], 'plugins/'.$pluginCheck[1])))
+                                    {
+                                        $error = true;
+                                    }
+                                }
+                                else
+                                {
+                                    $parentIsMissing = true;
+                                    $error = true;
+                                }
+
                             }
+                            else
+                            {
+                                // its an addon
+                                // copy over, no matter what!
+                                if(!rex_dir::copy(rex_path::addon('zip_install','tmp/'.$foldername), rex_path::addon($config['package'])))
+                                {
+                                    $error = true;
+                                }
+                            }
+
 
                             rex_dir::delete(rex_path::addon('zip_install','tmp/'.$foldername));
                         }
@@ -83,11 +117,23 @@ class zip_upload
 
             if (!$error)
             {
-                echo rex_view::info(rex_i18n::rawMsg('zip_install_install_succeed'));
+                if($isPlugin)
+                {
+                    echo rex_view::info(str_replace('%%plugin%%', $config['package'], rex_i18n::rawMsg('zip_install_plugin_install_succeed')));
+                }
+                else
+                {
+                    echo rex_view::info(str_replace('%%addon%%', $config['package'], rex_i18n::rawMsg('zip_install_install_succeed')));
+                }
             }
             else
             {
                 echo rex_view::warning(rex_i18n::rawMsg('zip_install_invalid_addon'));
+                if($parentIsMissing)
+                {
+                    echo rex_view::warning(rex_i18n::rawMsg('zip_install_plugin_parent_missing'));
+                }
+
             }
         }
     }

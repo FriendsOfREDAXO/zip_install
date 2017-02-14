@@ -1,10 +1,11 @@
 zip_install_title = ZIP Upload
 zip_install_choose_file = Zip-Datei auswählen
-zip_install_auto_rename = Den entpackten Ordner automatisch umbenennen (mit dem AddOn-Key aus der package.yml)
 zip_install_upload_file = Datei hochladen
-zip_install_choose_info = Es sind nur AddOns gestattet, keine Plugins. Sollte der Ordner bereits existieren, wird dieser überschrieben.<br>Bitte ggf. vor dem Upload ein Backup anlegen.<br><br><strong>Hinweis: Der Ordner wird automatisch auf den Package-Name umbenannt, es muss nichts manuell gemacht werden.</strong>
+zip_install_choose_info = AddOns und Plugins möglich. Sollte der Ordner bereits existieren, wird dieser überschrieben.<br>Bitte ggf. vor dem Upload ein Backup anlegen.<br><br><strong>Hinweis: Der Ordner wird automatisch auf den Package-Name umbenannt, es muss nichts manuell gemacht werden.</strong>
 zip_install_invalid_addon = Das AddOn wurde nicht entpackt, da es ungültig war.
-zip_install_install_succeed = Das AddOn wurde erfolgreich entpackt. <a href="index.php?page=packages">Zu den AddOns</a>
+zip_install_plugin_parent_missing = Das Plugin konnte nicht installiert werden, da das zugehörige AddOn fehlt!
+zip_install_install_succeed = Das AddOn %%addon%% wurde erfolgreich entpackt. <a href="index.php?page=packages">Zu den AddOns</a>
+zip_install_plugin_install_succeed = Das Plugin %%plugin%% wurde erfolgreich entpackt. <a href="index.php?page=packages">Zu den AddOns</a>
 # Benennung für die Addonrechte, sichtbar innerhalb der REDAXO-Administration unter Benutzer > Rollen > Allgemein
 
 perm_general_zip_install[] = Rechte für den Zip-Upload

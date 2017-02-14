@@ -1,11 +1,11 @@
 # zip_install
-Mit diesem AddOn kannst du gezippte AddOns einfach im Backend hochladen und installieren.
+Mit diesem AddOn kannst du gezippte AddOns oder Plugins einfach im Backend hochladen und installieren.
 
 ![Screenshot](https://raw.githubusercontent.com/FriendsOfREDAXO/zip_install/assets/screenshot.png)
 
 Benutzung
 ------------
-Das AddOn registriert eine neue Subpage im Installer (neben "Eigene hochladen"). Dort kannst du einfach eine ZIP-Datei eines gültigen AddOns uploaden (wird geprüft). Plugins lassen sich damit _noch_ nicht installieren, werde ich aber ggf. als Update nachreichen
+Das AddOn registriert eine neue Subpage im Installer (neben "Eigene hochladen"). Dort kannst du einfach eine ZIP-Datei eines gültigen AddOns uploaden (wird geprüft). Plugins lassen sich auch installieren. Diese werden automatisch in das richtige AddOn kopiert. (Benennung erfolgt ebenfalls automatisch)
 
 Installation
 ------------
