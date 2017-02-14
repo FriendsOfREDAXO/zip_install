@@ -15,7 +15,7 @@ Hinweis: dies ist kein Plugin! (verhält sich jedoch wie eines)
 * Ordner umbenennen in `zip_install`.
 * In den Addons-Ordner legen: `/redaxo/src/addons`.
 
-Danach musst du diese nervigen Schritte nie wieder wiederholen, wenn du eigene AddOns z.B. von Github installieren möchtest. (oder eigene, lokal entwickelte).
+Danach musst du diese nervigen Schritte nie wieder wiederholen, wenn du eigene AddOns/Plugins z.B. von Github installieren möchtest. (oder eigene, lokal entwickelte).
 
 Oder den REDAXO-Installer nutzen!
 
