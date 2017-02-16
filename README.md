@@ -19,6 +19,10 @@ Danach musst du diese nervigen Schritte nie wieder wiederholen, wenn du eigene A
 
 Oder den REDAXO-Installer nutzen!
 
+Hinweise
+------------
+Dieses AddOn entpackt REDAXO Plugins/AddOns und verschiebt diese ins korrekte Verzeichnis. Es wird kein Install oder Re-Install durchgeführt. Es werden keine Abhängigkiten beachtet. Bereits existierende Dateien im AddOn/Plugin-Verzeichnis werden überschrieben (wie beim REDAXO-Installer). Die update.php des AddOns wird nicht aufgerufen. Dieses Tool ist mehr als "Github-Release-Upload-Schnell-Mal-Hochschieben" Utility gedacht. Und dafür macht das AddOn seine Arbeit wirklich gut :)
+
 Voraussetzungen
 ------------
 
