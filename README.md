@@ -7,10 +7,6 @@ Benutzung
 ------------
 Das AddOn registriert eine neue Subpage im Installer (neben "Eigene hochladen"). Dort kannst du einfach eine ZIP-Datei eines gültigen AddOns uploaden (wird geprüft). Plugins lassen sich auch installieren. Diese werden automatisch in das richtige AddOn kopiert. (Benennung erfolgt ebenfalls automatisch)
 
-Beta-Probleme
-------------
-Vor Version 1.0.0-RC2 gab es ein Problem mit Benutzerrechten. Dadurch war kein Update oder De-Install unter gewissen Umständen möglich. Bitte einfach manuell das AddOn per FTP hochladen (ohne den tmp Ordner). Danach auf re-installieren klicken, damit die Permissions des Verzeichnisses korrigiert werden. Anschließend kann wieder über den Installer geupdated werden.
-
 Installation
 ------------
 Hinweis: dies ist kein Plugin! (verhält sich jedoch wie eines)
@@ -28,3 +24,7 @@ Voraussetzungen
 
 * fileinfo extension
 * zlib extension
+
+Known Issues
+------------
+Vor Version 1.0.0-RC2 gab es ein Problem mit Benutzerrechten. Dadurch war kein Update oder De-Install unter gewissen Umständen möglich. Bitte einfach manuell das AddOn per FTP hochladen (ohne den tmp Ordner). Danach auf re-installieren klicken, damit die Permissions des Verzeichnisses korrigiert werden. Anschließend kann wieder über den Installer geupdated werden.
