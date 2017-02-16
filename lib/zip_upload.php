@@ -17,6 +17,7 @@ class zip_upload
         {
             $error = true;
             $tmp_path = rex_path::addon('zip_install');
+            $parentIsMissing = false;
 
             $upload = Upload::factory('tmp', $tmp_path);
             $upload->file($_FILES['file']);
@@ -30,7 +31,6 @@ class zip_upload
             if ($results['status'] === true)
             {
                 $error = false;
-                $parentIsMissing = false;
                 $isPlugin = false;
                 $foldername = '';
                 $packageFile = false;
