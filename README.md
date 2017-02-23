@@ -29,6 +29,10 @@ Voraussetzungen
 * fileinfo extension
 * zlib extension
 
+Changelog
+------------
+Bug #1 gefixed
+
 Known Issues
 ------------
 Vor Version 1.0.0-RC2 gab es ein Problem mit Benutzerrechten. Dadurch war kein Update oder De-Install unter gewissen Umständen möglich. Bitte einfach manuell das AddOn per FTP hochladen (ohne den tmp Ordner). Danach auf re-installieren klicken, damit die Permissions des Verzeichnisses korrigiert werden. Anschließend kann wieder über den Installer geupdated werden.
