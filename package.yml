@@ -15,4 +15,6 @@ requires:
 pages:
     install/packages/zip_upload:
         title: translate:title
+    install/packages/zip_url:
+        title: translate:title_url
 perm: admin

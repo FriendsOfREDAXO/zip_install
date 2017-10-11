@@ -1,3 +1,6 @@
+url_install_title = Install ZIP from URL
+url_install_choose_file = URL zu Zip-Datei
+url_install_upload_file = Datei von URL installieren
 zip_install_title = ZIP Upload
 zip_install_choose_file = Zip-Datei auswählen
 zip_install_upload_file = Datei hochladen
