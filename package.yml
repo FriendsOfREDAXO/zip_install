@@ -16,5 +16,5 @@ pages:
     install/packages/zip_upload:
         title: translate:title
     install/packages/zip_url:
-        title: translate:title_url
+        title: translate:url_title
 perm: admin

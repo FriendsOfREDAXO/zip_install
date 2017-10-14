@@ -1,10 +1,10 @@
-url_install_title = Install ZIP from URL
-url_install_choose_file = URL zu Zip-Datei
-url_install_upload_file = Datei von URL installieren
+zip_install_url_title = Von URL installieren
+url_install_choose_file = URL zu ZIP-Datei
+url_install_upload_file = Von URL installieren
 zip_install_title = ZIP Upload
 zip_install_choose_file = Zip-Datei auswählen
 zip_install_upload_file = Datei hochladen
-zip_install_choose_info = AddOns und Plugins möglich. Sollte der Ordner bereits existieren, wird dieser überschrieben.<br>Bitte ggf. vor dem Upload ein Backup anlegen.<br><br><strong>Hinweis: Der Ordner wird automatisch auf den Package-Name umbenannt, es muss nichts manuell gemacht werden.</strong>
+url_install_choose_info = AddOns und Plugins möglich. Sollte der Ordner bereits existieren, wird dieser überschrieben.<br>Bitte ggf. vor dem Upload ein Backup anlegen.<br><br><strong>Hinweis: Der Ordner wird automatisch auf den Package-Name umbenannt, es muss nichts manuell gemacht werden.</strong>
 zip_install_invalid_addon = Das Paket wurde nicht entpackt, da es ungültig war.
 zip_install_plugin_parent_missing = Das Plugin konnte nicht installiert werden, da das zugehörige AddOn fehlt!
 zip_install_install_succeed = Das AddOn %%addon%% wurde erfolgreich entpackt. <a href="index.php?page=packages">Zu den AddOns</a>
