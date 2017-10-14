@@ -6,6 +6,7 @@ zip_install_url_no_wrapper = No PHP stream wrapper for that protokoll.
 zip_install_url_file_not_loaded = Download failed.
 zip_install_url_no_zip = Downloaded file is not a ZIP file.
 zip_install_url_tmp_not_written = Download failed. Temporary file not present.
+zip_install_url_wrappers = Available protocols
 
 # Upload
 zip_install_title = ZIP Upload

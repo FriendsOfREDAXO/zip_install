@@ -17,6 +17,7 @@ $content .= '
 <form name="upload_zip_file" method="POST" action="" enctype="multipart/form-data">
   <div class="form-group">
     <label for="zip">'.rex_i18n::rawMsg('zip_install_url').'</label>
+    <small>'.rex_i18n::rawMsg('zip_install_url_wrappers').': '. implode(', ', zip_url::getAvailableWrappers()).'</small>
     <!-- https://github.com/FriendsOfREDAXO/ui_tools/archive/develop.zip -->
     <input type="text" class="form-control" name="file_url" id="zip" value="https://github.com/FriendsOfREDAXO/adminer/archive/master.zip">
     <p class="help-block">'.rex_i18n::rawMsg('zip_install_url_choose_info').'</p>
@@ -26,7 +27,6 @@ $content .= '
 </form>
 ';
 
-//dump(zip_url::getAvailableWrappers());
 
 
 

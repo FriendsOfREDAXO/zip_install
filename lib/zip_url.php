@@ -18,8 +18,7 @@ class zip_url extends zip_install
 
     protected static function isWrapperAvailable($w)
     {
-        $wrappers = stream_get_wrappers();
-        return in_array($w, $wrappers);
+        return in_array($w, self::getAvailableWrappers());
     }
     
     public static function validateAndExtractUpload($url = "")
