@@ -1,11 +1,24 @@
+# URL
+zip_install_url_title = Install from URL
+zip_install_url = URL of ZIP file
+zip_install_url_choose_info = AddOns and PlugIns possible. If the folder already exists it will be overwritten.<br />Please create backups before uploading.<br /><br /><strong>Notice: the folder will automatically be renamed to the package name, no need to alter things manually</strong>
+zip_install_url_no_wrapper = No PHP stream wrapper for that protokoll.
+zip_install_url_file_not_loaded = Download failed.
+zip_install_url_no_zip = Downloaded file is not a ZIP file.
+zip_install_url_tmp_not_written = Download failed. Temporary file not present.
+
+# Upload
 zip_install_title = ZIP Upload
 zip_install_choose_file = Specify ZIP file
 zip_install_upload_file = Upload file
 zip_install_choose_info = AddOns and PlugIns possible. If the folder already exists it will be overwritten.<br />Please create backups before uploading.<br /><br /><strong>Notice: the folder will automatically be renamed to the package name, no need to alter things manually</strong>
+
+# General
 zip_install_invalid_addon = The package was not unpacked, because it was invalid.
 zip_install_plugin_parent_missing = The PlugIn could not be installed, because the corresponding AddOn is missing!
 zip_install_install_succeed = The AddOn %%addon%% has successfully been unpacked. <a href="index.php?page=packages">AddOns</a>
 zip_install_plugin_install_succeed = The PlugIn %%plugin%% has successfully been unpacked. <a href="index.php?page=packages">AddOns</a>
-# Benennung für die Addonrechte, sichtbar innerhalb der REDAXO-Administration unter Benutzer > Rollen > Allgemein
+zip_install_upload_failed = Upload failed.
 
+# Benennung für die Addonrechte, sichtbar innerhalb der REDAXO-Administration unter Benutzer > Rollen > Allgemein
 perm_general_zip_install[] = Permissions for ZIP Upload
