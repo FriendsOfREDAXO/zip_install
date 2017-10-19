@@ -8,7 +8,6 @@
 * @var rex_addon
 */
 
-#zip_url::validateAndExtractUpload(rex_post("file"));
 zip_url::validateAndExtractUpload();
 
 $content = '';
@@ -18,7 +17,7 @@ $content .= '
   <div class="form-group">
     <label for="zip">'.rex_i18n::rawMsg('url_install_choose_file').'</label>
     <!--<input type="text" name="file_url" id="zip" value="https://github.com/FriendsOfREDAXO/ui_tools/archive/develop.zip">-->
-    <input type="text" class="form-control" name="file_url" id="zip" value="https://github.com/FriendsOfREDAXO/adminer/archive/master.zip">
+    <input type="text" class="form-control" name="file_url" id="zip" placeholder="https://github.com/FriendsOfREDAXO/adminer/archive/master.zip">
     <p class="help-block">'.rex_i18n::rawMsg('url_install_choose_info').'</p>
   </div>
   <button type="submit" class="btn btn-default">'.rex_i18n::rawMsg('url_install_upload_file').'</button>
