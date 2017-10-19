@@ -1,11 +1,16 @@
 # REDAXO ZIP-Upload AddOn und Plugin Install!
-Mit diesem AddOn kannst du gezippte AddOns oder Plugins einfach im Backend hochladen und installieren.
+Mit diesem AddOn kannst du gezippte AddOns oder Plugins einfach im Backend oder über die URL zu einer ZIP-Datei hochladen.
 
 ![Screenshot](https://raw.githubusercontent.com/FriendsOfREDAXO/zip_install/assets/screen.png)
 
 Benutzung
 ------------
-Das AddOn registriert eine neue Subpage im Installer (neben "Eigene hochladen"). Dort kannst du einfach eine ZIP-Datei eines gültigen AddOns uploaden (wird geprüft). Plugins lassen sich auch installieren. Diese werden automatisch in das richtige AddOn kopiert. (Benennung erfolgt ebenfalls automatisch)
+Das AddOn registriert zwei neue Subpages im Installer (neben "Eigene hochladen"). Dort kannst du
+
+ * eine ZIP-Datei eines gültigen AddOns uploaden (wird geprüft).
+ * eine URL zu einer ZIP-Datei eines gültigen AddOns angeben.
+
+Plugins lassen sich auch installieren. Diese werden automatisch in das richtige AddOn kopiert. (Benennung erfolgt ebenfalls automatisch)
 
 Installation
 ------------
@@ -28,10 +33,12 @@ Voraussetzungen
 
 * fileinfo extension
 * zlib extension
+* PHP URL wrapper für benötigte Protokolle (https, ...) für den Upload per URL
 
 Changelog
 ------------
-Bug #1 gefixed
+ * Bug #1 gefixed
+ * Version 1.1 URL install
 
 Known Issues
 ------------
