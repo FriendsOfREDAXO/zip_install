@@ -2,11 +2,9 @@
 zip_install_url_title = Install from URL
 zip_install_url = URL of ZIP file
 zip_install_url_choose_info = AddOns and PlugIns possible. If the folder already exists it will be overwritten.<br />Please create backups before uploading.<br /><br /><strong>Notice: the folder will automatically be renamed to the package name, no need to alter things manually</strong>
-zip_install_url_no_wrapper = No PHP stream wrapper for that protokoll.
 zip_install_url_file_not_loaded = Download failed.
 zip_install_url_no_zip = Downloaded file is not a ZIP file.
 zip_install_url_tmp_not_written = Download failed. Temporary file not present.
-zip_install_url_wrappers = Available protocols
 
 # Upload
 zip_install_title = ZIP Upload
