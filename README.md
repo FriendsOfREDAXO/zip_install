@@ -33,7 +33,6 @@ Voraussetzungen
 
 * fileinfo extension
 * zlib extension
-* PHP URL wrapper für benötigte Protokolle (https, ...) für den Upload per URL
 
 Changelog
 ------------
