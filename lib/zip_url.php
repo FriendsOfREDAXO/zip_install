@@ -1,8 +1,10 @@
 <?php
 /**
- * media_manager_autorewrite Addon.
+ * zip_install Addon.
+ * 
  *
  * @author Friends Of REDAXO
+ * @author stefan-beyer
  *
  * @var rex_addon
  */
@@ -11,48 +13,58 @@
 class zip_url extends zip_install
 {
     
-    public static function getAvailableWrappers() {
-        $wrappers = stream_get_wrappers();
-        return array_intersect(['https','http','ftp','ftps','ssh', 'data', 'glob'], $wrappers);
+    protected static function downloadFile($url, $destination)
+    {
+        try {
+            $socket = rex_socket::factoryURL($url);
+            $response = $socket->doGet();
+            // handle redirects (limited)
+            $redircount = 0;
+            while ($response->isRedirection() && $redircount < 3) {
+                $location = $response->getHeader('Location');
+
+                if (empty($location)) {
+                    return false;
+                }
+                
+
+                # add host if needed
+                if (strpos($location, '//') === false) {
+                    $parsed = parse_url($url);
+                    $host = $parsed['scheme'] . '://' . $parsed['host'];
+                    if (isset($parsed['port'])) {
+                        $host .= ':'. $parsed['port'];
+                    }
+                    $location = $host . $location;
+                }
+
+                $socket = rex_socket::factoryURL($location);
+                $response = $socket->doGet();
+                $redircount++;
+            }
+
+            if(!$response->isOk()) {
+                return false;
+            }
+
+            // write to file
+            if ($response->writeBodyTo($destination)) {
+                return true;
+            }
+        } catch(rex_socket_exception $e) {}
+        return false;
     }
 
-    protected static function isWrapperAvailable($w)
-    {
-        return in_array($w, self::getAvailableWrappers());
-    }
-    
-    public static function validateAndExtractUpload($url = "")
+
+    public static function validateAndExtractUpload()
     {
         $url = rex_post('file_url');
         if (!empty($url))
         {
-            
-            $tmp_file = rex_path::addon('zip_install', 'tmp/._.zip');
+            $tmp_file = rex_path::addon('zip_install', 'tmp/._tmp.zip');
         
-            $parentIsMissing = false;
-
-            $wrapper = strstr($url, ':', true);
-            
-            if (!self::isWrapperAvailable($wrapper)) {
-                echo rex_view::warning(rex_i18n::rawMsg('zip_install_url_no_wrapper'));
-                return;
-            }
-            
-            $contents = file_get_contents($url);
-            if ($contents === false) {
+            if (!self::downloadFile($url, $tmp_file)) {
                 echo rex_view::error(rex_i18n::rawMsg('zip_install_url_file_not_loaded'));
-                return;
-            }
-            
-            // Check Magic Bytes for ZIP File
-            if (substr($contents, 0, 2) !== 'PK') {
-                echo rex_view::error(rex_i18n::rawMsg('zip_install_url_no_zip'));
-                return;
-            }
-            
-            if (file_put_contents($tmp_file, $contents) === false) {
-                echo rex_view::error(rex_i18n::rawMsg('zip_install_url_tmp_not_written'));
-                return;
             }
             
             if (!file_exists($tmp_file)) {

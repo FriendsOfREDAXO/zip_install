@@ -1,6 +1,6 @@
 <?php
 /**
- * media_manager_autorewrite Addon.
+ * zip_install Addon.
  *
  * @author Friends Of REDAXO
  *
