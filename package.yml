@@ -1,5 +1,5 @@
 package: zip_install
-version: '1.0.2'
+version: '1.1'
 author: Friends Of REDAXO
 supportpage: github.com/FriendsOfREDAXO/zip_install
 
@@ -15,4 +15,6 @@ requires:
 pages:
     install/packages/zip_upload:
         title: translate:title
+    install/packages/zip_url:
+        title: translate:url_title
 perm: admin
