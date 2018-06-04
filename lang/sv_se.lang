@@ -1,11 +1,23 @@
+# URL
+zip_install_url_title = Installera från URL
+zip_install_url = ZIP-filens URL
+zip_install_url_choose_info = AddOns och plugins möjliga. Om mappen redan finns kommer den att skrivas över. <br> Var god skapa en säkerhetskopia innan du laddar upp den. <br> <br> <strong> Obs! Mappen ändras automatiskt till paketets namn, inget måste göras manuellt. </ strong>
+zip_install_url_file_not_loaded = Ett fel uppstod vid nerladdningen
+zip_install_url_no_zip = Den nerladdade filen är ingen ZIP-fil.
+zip_install_url_tmp_not_written = Fel vid nerladdningen. Den temporära filen saknas.
+
+# Upload
 zip_install_title = ZIP Upload
 zip_install_choose_file = Välja ut ZIP-file
 zip_install_upload_file = Ladda upp fl
 zip_install_choose_info = AddOns och PlugIns är möjliga. Om mappen redan existerar kommer den att skrivas över. <br /> Vänligen skapa säkerhetskopior innan du laddar upp. <br /> <br /> <strong> Obs! Mappen kommer automatiskt att byta namn på paketets namn, du behöver inte ändra saker manuellt </ strong>
+zip_install_upload_failed = Uppladdningen misslyckades.
+
+# General
 zip_install_invalid_addon = Paketet packades inte ut eftersom det var ogiltigt.
 zip_install_plugin_parent_missing = PlugIn kunde inte installeras eftersom motsvarande AddOn saknas!
 zip_install_install_succeed = AddOn %% addon %% har kunnat packats upp med framgång. <a href="index.php?page=packages"> AddOns </a>
 zip_install_plugin_install_succeed = PlugIn %% plugin %% har framgångsrikt packats upp. <a href="index.php?page=packages"> AddOns </a>
-# Benennung für die Addonrechte, sichtbar innerhalb der REDAXO-Administration unter Benutzer > Rollen > Allgemein
 
+# Benennung für die Addonrechte, sichtbar innerhalb der REDAXO-Administration unter Benutzer > Rollen > Allgemein
 perm_general_zip_install[] = Rättigheter till ZIP-uppladdning
