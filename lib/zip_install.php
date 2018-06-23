@@ -97,7 +97,10 @@ class zip_install {
                 $error = true;
             }
 
-        } catch (Exception $e) {}
+        } catch (Exception $e) {
+            echo rex_view::warning($e->getMessage());
+            $error = true;
+        }
 
         // delete tmp uploaded zip-file
         @unlink($tmp_file);
@@ -116,7 +119,7 @@ class zip_install {
         else
         {
             echo rex_view::warning(rex_i18n::rawMsg('zip_install_invalid_addon'));
-            if($parentIsMissing)
+            if(isset($parentIsMissing) && $parentIsMissing)
             {
                 echo rex_view::warning(rex_i18n::rawMsg('zip_install_plugin_parent_missing'));
             }
