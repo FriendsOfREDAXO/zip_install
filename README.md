@@ -2,7 +2,7 @@
 Mit diesem AddOn kannst du gezippte AddOns oder Plugins einfach im Backend oder über die URL zu einer ZIP-Datei hochladen.
 
 ![Screenshot](https://raw.githubusercontent.com/FriendsOfREDAXO/zip_install/assets/screen.png)
-![Screenshot](https://raw.githubusercontent.com/FriendsOfREDAXO/zip_install/assets/screen_zip.png)
+![Screenshot](https://raw.githubusercontent.com/FriendsOfREDAXO/zip_install/assets/screen2.png)
 
 Benutzung
 ------------
