@@ -10,7 +10,7 @@ requires:
 
     php:
         version: '>=5.6' # benötigt mindestens PHP 5.6
-        extensions: [zlib, fileinfo] # benötigt die PHP-Extensions zip
+        extensions: [zlib, fileinfo, zip] # benötigt die PHP-Extensions zip
 
 pages:
     install/packages/zip_upload:
