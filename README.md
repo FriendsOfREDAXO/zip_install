@@ -1,4 +1,5 @@
-# REDAXO ZIP-Upload AddOn und Plugin Install!
+# REDAXO AddOn ZIP Install!
+
 Mit diesem AddOn kannst du gezippte AddOns oder Plugins einfach im Backend oder über die URL zu einer ZIP-Datei hochladen.
 
 ![Screenshot](https://raw.githubusercontent.com/FriendsOfREDAXO/zip_install/assets/screen.png)
@@ -14,15 +15,13 @@ Plugins lassen sich auch installieren. Diese werden automatisch in das richtige 
 
 Installation
 ------------
-Hinweis: dies ist kein Plugin! (verhält sich jedoch wie eines)
-
 * Release herunterladen und entpacken.
 * Ordner umbenennen in `zip_install`.
 * In den Addons-Ordner legen: `/redaxo/src/addons`.
 
 Danach musst du diese nervigen Schritte nie wieder wiederholen, wenn du eigene AddOns/Plugins z.B. von Github installieren möchtest. (oder eigene, lokal entwickelte).
 
-Oder den REDAXO-Installer nutzen!
+Selbstverständlich kannst Du weiter den REDAXO-Installer nutzen!
 
 Hinweise
 ------------
@@ -36,8 +35,7 @@ Voraussetzungen
 
 Changelog
 ------------
- * Bug #1 gefixed
- * Version 1.1 URL install
+Siehe GitHub- oder REDAXO-Installer Release-Notes
 
 Known Issues
 ------------
