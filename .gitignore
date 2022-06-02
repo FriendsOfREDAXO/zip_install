@@ -1,0 +1,4 @@
+
+.DS_Store
+vendor/autoload.php
+vendor/composer/*
