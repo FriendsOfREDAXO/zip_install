@@ -1,4 +1,4 @@
-# REDAXO AddOn ZIP Install!
+# REDAXO Add-On upload via zip & url
 
 Mit diesem AddOn kannst du gezippte AddOns oder Plugins einfach im Backend oder über die URL zu einer ZIP-Datei hochladen.
 
