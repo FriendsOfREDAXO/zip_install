@@ -18,7 +18,7 @@ $content .= '
   
     <label for="zip">'.rex_i18n::rawMsg('zip_install_url').'</label>
     <!-- https://github.com/FriendsOfREDAXO/ui_tools/archive/develop.zip -->
-    <input type="text" class="form-control" name="file_url" id="zip" placeholder="https://github.com/FriendsOfREDAXO/adminer/archive/master.zip">
+    <input type="text" class="form-control" name="file_url" id="zip" placeholder="https://github.com/FriendsOfREDAXO/adminer/archive/refs/heads/main.zip">
     <p class="help-block">'.rex_i18n::rawMsg('zip_install_url_choose_info').'</p>
     
   </div>
