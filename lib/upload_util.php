@@ -14,9 +14,15 @@ class Upload {
 	 */
 	protected $default_permissions = 0755;
 
-
 	/**
 	 * File post array
+	 *
+	 * @var array
+	 */
+	protected $file_post = array();
+
+	/**
+	 * Files post array
 	 *
 	 * @var array
 	 */
