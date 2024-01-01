@@ -1,4 +1,5 @@
 <?php
+
 /**
  * zip_install Addon.
  * 
@@ -29,7 +30,7 @@ class zip_url extends zip_install
                     $parsed = parse_url($url);
                     $host = $parsed['scheme'] . '://' . $parsed['host'];
                     if (isset($parsed['port'])) {
-                        $host .= ':'. $parsed['port'];
+                        $host .= ':' . $parsed['port'];
                     }
                     $location = $host . $location;
                 }
@@ -39,7 +40,7 @@ class zip_url extends zip_install
                 $redircount++;
             }
 
-            if(!$response->isOk()) {
+            if (!$response->isOk()) {
                 return false;
             }
 
@@ -47,7 +48,8 @@ class zip_url extends zip_install
             if ($response->writeBodyTo($destination)) {
                 return true;
             }
-        } catch(rex_socket_exception $e) {}
+        } catch (rex_socket_exception $e) {
+        }
         return false;
     }
 
@@ -55,10 +57,10 @@ class zip_url extends zip_install
     {
         $fileUrl = rex_post('file_url');
 
-        if (!empty($fileUrl))
-        {
+        if (!empty($fileUrl)) {
             $tmp_file = rex_path::addon('zip_install', 'tmp/._tmp.zip');
             $isGithubRepo = preg_match("/^https:\/\/github\.com\/[\w-]+\/[\w-]+$/", $fileUrl);
+            $isGithubBranch = preg_match("/^https:\/\/github\.com\/[\w-]+\/[\w-]+\/tree\/[\w-]+$/", $fileUrl);
 
             if ($isGithubRepo) {
                 $mainBranchUrl = $fileUrl . '/archive/main.zip';
@@ -72,6 +74,13 @@ class zip_url extends zip_install
 
                 // Versuche dann den 'master'-Branch
                 if (self::downloadFile($masterBranchUrl, $tmp_file) && file_exists($tmp_file)) {
+                    self::installZip($tmp_file);
+                    return;
+                }
+            } elseif ($isGithubBranch) {
+
+                // Entfernen Sie '/tree/' und ersetzen Sie es durch '/archive/' + '.zip'
+                if (self::downloadFile($branchUrl, $tmp_file) && file_exists($tmp_file)) {
                     self::installZip($tmp_file);
                     return;
                 }
