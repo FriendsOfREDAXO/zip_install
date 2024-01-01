@@ -60,8 +60,7 @@ class zip_url extends zip_install
         if (!empty($fileUrl)) {
             $tmp_file = rex_path::addon('zip_install', 'tmp/._tmp.zip');
             $isGithubRepo = preg_match("/^https:\/\/github\.com\/[\w-]+\/[\w-]+$/", $fileUrl);
-            $isGithubBranch = preg_match("/^https:\/\/github\.com\/[\w-]+\/[\w-]+\/tree\/[\w-]+$/", $fileUrl);
-
+            $isGithubBranch = preg_match("/^https:\/\/github\.com\/[\w-]+\/[\w-]+\/tree\/[\w\.-]+$/", $fileUrl);
             if ($isGithubRepo) {
                 $mainBranchUrl = $fileUrl . '/archive/main.zip';
                 $masterBranchUrl = $fileUrl . '/archive/master.zip';
@@ -78,8 +77,8 @@ class zip_url extends zip_install
                     return;
                 }
             } elseif ($isGithubBranch) {
-
                 // Entfernen Sie '/tree/' und ersetzen Sie es durch '/archive/' + '.zip'
+                $branchUrl = preg_replace("/\/tree\//", '/archive/', $fileUrl) . '.zip';
                 if (self::downloadFile($branchUrl, $tmp_file) && file_exists($tmp_file)) {
                     self::installZip($tmp_file);
                     return;
