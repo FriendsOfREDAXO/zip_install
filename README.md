@@ -10,7 +10,8 @@ Das AddOn registriert zwei neue Subpages im Installer (neben "Eigene hochladen")
 
  * eine ZIP-Datei eines gültigen AddOns uploaden (wird geprüft).
  * eine URL zu einer ZIP-Datei eines gültigen AddOns angeben.
- * eine URL zu einem GitHub-Repo z.B.: `https://github.com/FriendsOfREDAXO/quick_navigation` (aktueller Haupt-Branch wird geladen) 
+ * eine URL zu einem GitHub-Repo z.B.: `https://github.com/FriendsOfREDAXO/quick_navigation` (aktueller Haupt-Branch wird geladen)
+ * ZIP einer GitHub-Branch laden z.B:  `https://github.com/FriendsOfREDAXO/quick_navigation/tree/dev`
 
 Plugins lassen sich auch installieren. Diese werden automatisch in das richtige AddOn kopiert. (Benennung erfolgt ebenfalls automatisch)
 
