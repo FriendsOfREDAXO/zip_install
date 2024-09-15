@@ -1,5 +1,4 @@
 <?php
-
 /**
  * zip_install Addon.
  * 
@@ -8,7 +7,6 @@
  *
  * @var rex_addon
  */
-
 class zip_url extends zip_install
 {
     protected static function downloadFile($url, $destination)
@@ -20,11 +18,9 @@ class zip_url extends zip_install
             $redircount = 0;
             while ($response->isRedirection() && $redircount < 3) {
                 $location = $response->getHeader('Location');
-
                 if (empty($location)) {
                     return false;
                 }
-
                 # add host if needed
                 if (strpos($location, '//') === false) {
                     $parsed = parse_url($url);
@@ -34,16 +30,13 @@ class zip_url extends zip_install
                     }
                     $location = $host . $location;
                 }
-
                 $socket = rex_socket::factoryURL($location);
                 $response = $socket->doGet();
                 $redircount++;
             }
-
             if (!$response->isOk()) {
                 return false;
             }
-
             // write to file
             if ($response->writeBodyTo($destination)) {
                 return true;
@@ -56,21 +49,27 @@ class zip_url extends zip_install
     public static function validateAndExtractUpload()
     {
         $fileUrl = rex_post('file_url');
-
         if (!empty($fileUrl)) {
-            $tmp_file = rex_path::addon('zip_install', 'tmp/._tmp.zip');
+            $tmp_path = rex_addon::get('zip_install')->getCachePath('tmp_uploads');
+            
+            // Ensure the temporary path exists
+            if (!file_exists($tmp_path)) {
+                rex_dir::create($tmp_path);
+            }
+            
+            $tmp_file = $tmp_path . '/._tmp.zip';
+            
             $isGithubRepo = preg_match("/^https:\/\/github\.com\/[\w-]+\/[\w-]+$/", $fileUrl);
             $isGithubBranch = preg_match("/^https:\/\/github\.com\/[\w-]+\/[\w-]+\/tree\/[\w\.-]+$/", $fileUrl);
+            
             if ($isGithubRepo) {
                 $mainBranchUrl = $fileUrl . '/archive/main.zip';
                 $masterBranchUrl = $fileUrl . '/archive/master.zip';
-
                 // Versuche zuerst den 'main'-Branch
                 if (self::downloadFile($mainBranchUrl, $tmp_file) && file_exists($tmp_file)) {
                     self::installZip($tmp_file);
                     return;
                 }
-
                 // Versuche dann den 'master'-Branch
                 if (self::downloadFile($masterBranchUrl, $tmp_file) && file_exists($tmp_file)) {
                     self::installZip($tmp_file);
@@ -90,7 +89,6 @@ class zip_url extends zip_install
                     return;
                 }
             }
-
             echo rex_view::error(rex_i18n::rawMsg('zip_install_url_file_not_loaded'));
         }
     }
