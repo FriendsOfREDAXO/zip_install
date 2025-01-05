@@ -1,108 +1,127 @@
 <?php
-// lib/ZipInstall.php
+/**
+ * zip_install Addon.
+ *
+ * @author Friends Of REDAXO
+ *
+ * @var rex_addon
+ */
 
-namespace FriendsOfRedaxo\ZipInstall;
+use Alchemy\Zippy\Zippy;
 
-class ZipInstall {
-    protected static function installZip(string $tmpFile): void 
-    {
+class zip_install {
+    protected static function installZip($tmp_file) {
         $error = false;
         $isPlugin = false;
         $foldername = '';
         $packageFile = false;
-        
-        $addon = \rex_addon::get('zip_install');
-        // Nutze den ursprünglichen Cache-Pfad
-        $cachePath = \rex_path::addon('zip_install', 'cache');
-        
-        if (!file_exists($cachePath)) {
-            \rex_dir::create($cachePath);
-        }
-        
-        if (!is_file($tmpFile)) {
-            throw new \rex_functional_exception('Die temporäre Datei existiert nicht.');
-        }
-        
-        $zip = new \ZipArchive();
-        if ($zip->open($tmpFile) !== true) {
-            throw new \rex_functional_exception('Die ZIP-Datei konnte nicht geöffnet werden.');
-        }
+        $zippy = Zippy::load();
+
+        $tmp_path = rex_addon::get('zip_install')->getCachePath('tmp_uploads');
 
         try {
-            // Prüfe erste Datei und suche package.yml
-            for ($i = 0; $i < $zip->numFiles; $i++) {
-                $stat = $zip->statIndex($i);
-                $filename = $stat['name'];
+            $archive = $zippy->open($tmp_file);
 
-                if ($i === 0 && substr($filename, -1) !== '/') {
-                    throw new \rex_functional_exception('Ungültiges ZIP-Format: Erstes Element muss ein Verzeichnis sein.');
+            $i = 1;
+            foreach ($archive as $member) {
+                if(!$member->isDir() && $i == 1)
+                {
+                    $error = true;
+                    break;
                 }
-                
-                if ($i === 0) {
-                    $foldername = $filename;
+                else if($member->isDir() && $i == 1)
+                {
+                    $foldername = $member->getLocation();
                 }
-                
-                if (strpos($filename, 'package.yml') && !$packageFile) {
-                    $packageFile = $filename;
-                }
-            }
-            
-            if (!$packageFile) {
-                throw new \rex_functional_exception('Keine package.yml gefunden.');
-            }
 
-            // Extrahiere in Cache-Verzeichnis
-            $zip->extractTo($cachePath);
-            $zip->close();
+                // search for first package.yml
+                if(strpos($member->getLocation(), 'package.yml') && !$packageFile)
+                {
+                    $packageFile = $member->getLocation();
+                }
 
-            // Entferne unerwünschte Dateien/Ordner
-            \rex_dir::delete($cachePath . '/__MACOSX');
-            \rex_dir::delete($cachePath . '/.git');
-            \rex_dir::delete($cachePath . '/.gitignore');
-            \rex_dir::delete($cachePath . '/thumbs.db');
-            
-            // Lese package.yml
-            $config = \rex_file::getConfig($cachePath . '/' . $foldername . 'package.yml');
-            if (!isset($config['package'])) {
-                throw new \rex_functional_exception('package.yml enthält keinen Package-Namen.');
+                $i++;
             }
 
-            // Prüfe auf Plugin
-            $pluginCheck = explode('/', $config['package']);
-            if (count($pluginCheck) > 1) {
-                $isPlugin = true;
-                // Prüfe ob Parent existiert
-                if (!\rex_dir::isWritable(\rex_path::addon($pluginCheck[0]))) {
-                    throw new \rex_functional_exception(\rex_i18n::msg('zip_install_plugin_parent_missing'));
+            if($packageFile && !$error)
+            {
+                // extract into tmp folder
+                $archive->extract($tmp_path);
+
+                // delete garbage
+                rex_dir::delete($tmp_path . '/__MACOSX');
+                rex_dir::delete($tmp_path . '/.git');
+                rex_dir::delete($tmp_path . '/.gitignore');
+                rex_dir::delete($tmp_path . '/thumbs.db');
+
+                $config = rex_file::getConfig($tmp_path . '/' . $foldername . 'package.yml');
+                if($config['package'])
+                {
+                    $pluginCheck = explode('/', $config['package']);
+
+                    if(count($pluginCheck) > 1) {
+                        $isPlugin = true;
+                        // check if parent exists
+                        if(rex_dir::isWritable(rex_path::addon($pluginCheck[0])))
+                        {
+                            // its a plugin, it should have a parent
+                            if(!rex_dir::copy($tmp_path . '/' . $foldername, rex_path::addon($pluginCheck[0], 'plugins/'.$pluginCheck[1])))
+                            {
+                                $error = true;
+                            }
+                        }
+                        else
+                        {
+                            $parentIsMissing = true;
+                            $error = true;
+                        }
+
+                    }
+                    else
+                    {
+                        // its an addon
+                        // copy over, no matter what!
+                        if(!rex_dir::copy($tmp_path . '/' . $foldername, rex_path::addon($config['package'])))
+                        {
+                            $error = true;
+                        }
+                    }
+
+                    rex_dir::delete($tmp_path . '/' . $foldername);
                 }
-                
-                // Kopiere Plugin
-                if (!\rex_dir::copy($cachePath . '/' . $foldername, \rex_path::addon($pluginCheck[0], 'plugins/'.$pluginCheck[1]))) {
-                    throw new \rex_functional_exception('Plugin konnte nicht kopiert werden.');
-                }
-            } else {
-                // Kopiere AddOn
-                if (!\rex_dir::copy($cachePath . '/' . $foldername, \rex_path::addon($config['package']))) {
-                    throw new \rex_functional_exception('AddOn konnte nicht kopiert werden.');
-                }
+
+            }
+            else
+            {
+                $error = true;
             }
 
-            // Aufräumen
-            \rex_dir::delete($cachePath . '/' . $foldername);
-            
-            if ($isPlugin) {
-                return \rex_view::success(
-                    str_replace('%%plugin%%', $config['package'], \rex_i18n::msg('zip_install_plugin_install_succeed'))
-                );
-            }
-            
-            return \rex_view::success(
-                str_replace('%%addon%%', $config['package'], \rex_i18n::msg('zip_install_install_succeed'))  
-            );
+        } catch (Exception $e) {
+            echo rex_view::warning($e->getMessage());
+            $error = true;
+        }
 
-        } catch (\Exception $e) {
-            @$zip->close();
-            throw $e;
+        // delete tmp uploaded zip-file
+        @unlink($tmp_file);
+        
+        if (!$error)
+        {
+            if($isPlugin)
+            {
+                echo rex_view::info(str_replace('%%plugin%%', $config['package'], rex_i18n::rawMsg('zip_install_plugin_install_succeed')));
+            }
+            else
+            {
+                echo rex_view::info(str_replace('%%addon%%', $config['package'], rex_i18n::rawMsg('zip_install_install_succeed')));
+            }
+        }
+        else
+        {
+            echo rex_view::warning(rex_i18n::rawMsg('zip_install_invalid_addon'));
+            if(isset($parentIsMissing) && $parentIsMissing)
+            {
+                echo rex_view::warning(rex_i18n::rawMsg('zip_install_plugin_parent_missing'));
+            }
         }
     }
 }
