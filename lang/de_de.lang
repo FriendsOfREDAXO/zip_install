@@ -1,23 +1,39 @@
-# URL
-zip_install_url_title = Von URL installieren
-zip_install_url = URL zu ZIP-Datei oder GitHub-Repo
-zip_install_url_choose_info = AddOns und Plugins möglich. Sollte der Ordner bereits existieren, wird dieser überschrieben.<br>Bitte ggf. vor dem Upload ein Backup anlegen.<br><br><strong>Hinweis: Der Ordner wird automatisch auf den Package-Name umbenannt, es muss nichts manuell gemacht werden.</strong> Bei Eingabe einer GitHub-Repo-Adresse wird automatisch das Main-Branch geladen. 
-zip_install_url_file_not_loaded = Fehler beim Herunterladen der Datei.
-zip_install_url_no_zip = Die heruntergeladene Datei ist keine ZIP-Datei.
-zip_install_url_tmp_not_written = Fehler beim Herunterladen der Datei. Temporäre Datei nicht vorhanden.
+zip_install = Zip Install
+zip_install_title = ZIP Upload / GitHub
 
-# Upload
-zip_install_title = ZIP Upload
-zip_install_choose_file = Zip-Datei auswählen
+zip_install_settings = Einstellungen
+zip_install_settings_save = Einstellungen speichern
+
+zip_install_file = ZIP-Datei
+zip_install_file_upload = ZIP-Datei hochladen
+zip_install_url = URL zu ZIP-Datei oder GitHub Repository
+zip_install_github_user = GitHub Benutzer/Organisation
+zip_install_github_search = Suchen
+zip_install_github_info = Nach Eingabe des GitHub Benutzernamens oder der Organisation werden die verfügbaren Repositories angezeigt.
+
+zip_install_choose_file = ZIP-Datei auswählen
 zip_install_upload_file = Datei hochladen
-zip_install_choose_info = AddOns und Plugins möglich. Sollte der Ordner bereits existieren, wird dieser überschrieben.<br>Bitte ggf. vor dem Upload ein Backup anlegen.<br><br><strong>Hinweis: Der Ordner wird automatisch auf den Package-Name umbenannt, es muss nichts manuell gemacht werden.</strong>
-zip_install_upload_failed = Upload fehlgeschlagen.
+zip_install_choose_info = AddOns und Plugins möglich. Falls der Ordner bereits existiert wird dieser überschrieben.<br>Bitte gegebenenfalls vor dem Upload ein Backup anlegen.<br><br><strong>Hinweis: Der Ordner wird automatisch auf den Package-Namen umbenannt.</strong>
 
-# General
+zip_install_upload_failed = Upload fehlgeschlagen
 zip_install_invalid_addon = Das Paket wurde nicht entpackt, da es ungültig war.
-zip_install_plugin_parent_missing = Das Plugin konnte nicht installiert werden, da das zugehörige AddOn fehlt!
-zip_install_install_succeed = Das AddOn %%addon%% wurde erfolgreich entpackt. <a href="index.php?page=packages">Zu den AddOns</a>
-zip_install_plugin_install_succeed = Das Plugin %%plugin%% wurde erfolgreich entpackt. <a href="index.php?page=packages">Zu den AddOns</a>
+zip_install_invalid_file = Die hochgeladene Datei ist keine gültige ZIP-Datei.
+zip_install_invalid_url = Die eingegebene URL scheint nicht auf eine ZIP-Datei oder ein GitHub Repository zu verweisen.
+zip_install_invalid_github = Der eingegebene GitHub Benutzer/Organisation konnte nicht gefunden werden.
+zip_install_missing_addon = Das Plugin konnte nicht installiert werden, da das zugehörige AddOn fehlt!
 
-# Benennung für die Addonrechte, sichtbar innerhalb der REDAXO-Administration unter Benutzer > Rollen > Allgemein
-perm_general_zip_install[] = Rechte für den Zip-Upload
+zip_install_size_error = Die Datei überschreitet die maximale Upload-Größe von {0} MB.
+
+zip_install_install_succeed = Das AddOn wurde erfolgreich entpackt. <a href="index.php?page=packages">Zu den AddOns</a>
+zip_install_install_failed = Das AddOn konnte nicht installiert werden.
+
+zip_install_settings_saved = Die Einstellungen wurden gespeichert.
+zip_install_settings_error = Die Einstellungen konnten nicht gespeichert werden.
+
+zip_install_security_warning = Bitte beachten: Installieren Sie nur AddOns aus vertrauenswürdigen Quellen!
+
+zip_install_github_token = GitHub Token
+zip_install_github_token_info = Optional. Ein GitHub Token erhöht das stündliche API-Limit von 60 auf 5000 Anfragen.
+
+#permissions
+perm_general_zip_install[] = Rechte für ZIP Upload/GitHub Installation
