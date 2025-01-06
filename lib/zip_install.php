@@ -17,7 +17,14 @@ use ZipArchive;
 
 class ZipInstall
 {
+    /**
+     * @var rex_addon
+     */
     protected rex_addon $addon;
+
+    /**
+     * @var string
+     */
     protected string $tmpFolder;
 
     public function __construct()
@@ -40,6 +47,8 @@ class ZipInstall
 
     /**
      * Handle file upload from form
+     *
+     * @return string Returns a HTML string for a view message.
      */
     public function handleFileUpload(): string
     {
@@ -47,7 +56,9 @@ class ZipInstall
             return rex_view::error(rex_i18n::msg('zip_install_upload_failed'));
         }
 
+        /** @var array{name: string, type: string, tmp_name: string, error: int, size: int} $uploadedFile */
         $uploadedFile = $_FILES['zip_file'];
+
 
         // Check filesize
         $maxSize = $this->addon->getConfig('upload_max_size', 20) * 1024 * 1024; // Convert MB to bytes
@@ -69,6 +80,9 @@ class ZipInstall
 
     /**
      * Handle URL input (direct ZIP or GitHub URL)
+     *
+     * @param string $url The URL to process.
+     * @return string Returns a HTML string for a view message.
      */
     public function handleUrlInput(string $url): string
     {
@@ -110,6 +124,9 @@ class ZipInstall
 
     /**
      * Install ZIP file
+     *
+     * @param string $tmpFile Path to the temporary ZIP file.
+     * @return string Returns a HTML string for a view message.
      */
     protected function installZip(string $tmpFile): string
     {
@@ -117,6 +134,7 @@ class ZipInstall
         $isPlugin = false;
         $parentIsMissing = false;
         $folderName = '';
+         /** @var string|false $packageFile */
         $packageFile = false;
         $extractPath = $this->tmpFolder . '/extract/'; // Define here to ensure its existence for the finally block
 
@@ -130,6 +148,7 @@ class ZipInstall
             // Check first entry and look for package.yml
             $i = 1;
             for ($i = 0; $i < $zip->numFiles; $i++) {
+                /** @var array{name: string, index: int, size: int, mtime: int, crc: int, comp_size: int, comp_method: int} $stat */
                 $stat = $zip->statIndex($i);
                 $filename = $stat['name'];
 
@@ -163,6 +182,7 @@ class ZipInstall
             $zip->close();
 
 
+            /** @var array{package: string, version: string} $config */
             // Read package.yml
             $config = rex_file::getConfig($extractPath . $packageFile);
             if (empty($config['package'])) {
@@ -225,6 +245,9 @@ class ZipInstall
 
     /**
      * Get GitHub repositories for user/organization
+     *
+     * @param string $username The GitHub username or organization name.
+     * @return array<int, array{name: string, description: ?string, url: string, download_url: string, default_branch: string}> Returns an array of GitHub repositories.
      */
     public function getGitHubRepos(string $username): array
     {
@@ -249,6 +272,7 @@ class ZipInstall
             ];
 
             $context = stream_context_create($options);
+            /** @var string|false $response */
             $response = @file_get_contents($url, false, $context);
 
 
@@ -257,6 +281,7 @@ class ZipInstall
                 
             }
 
+             /** @var array|null $repos */
              $repos = json_decode($response, true);
              
             if (!is_array($repos)) {
@@ -270,7 +295,7 @@ class ZipInstall
              
            // Filter and format repos
             foreach ($repos as $repo) {
-                if (count($allRepos) >= 200){
+                 if (count($allRepos) >= 200){
                     break 2; // Exit both foreach and while loop
                 }
                 
@@ -280,10 +305,10 @@ class ZipInstall
                 }
                 
                  if (!$repo['fork'] && !$repo['archived'] && !$repo['disabled']) {
-                     $downloadUrl = $repo['default_branch'] === 'main'
-                        ? $repo['html_url'] . '/archive/refs/heads/main.zip'
+                      $downloadUrl = $repo['default_branch'] === 'main'
+                         ? $repo['html_url'] . '/archive/refs/heads/main.zip'
                         : $repo['html_url'] . '/archive/refs/heads/master.zip';
-                    
+                        
                     $allRepos[] = [
                         'name' => $repo['name'],
                         'description' => $repo['description'],
@@ -302,10 +327,14 @@ class ZipInstall
 
     /**
      * Check if URL is valid and accessible
+     *
+     * @param string $url The URL to check.
+     * @return bool True if the URL is valid and accessible, false otherwise.
      */
     protected function isValidUrl(string $url): bool
     {
          try {
+             /** @var array<int, string>|false $headers */
             $headers = @get_headers($url);
             return $headers && str_contains($headers[0], '200');
         } catch (Exception $e) {
@@ -316,10 +345,15 @@ class ZipInstall
 
     /**
      * Download file from URL
+     *
+     * @param string $url The URL of the file to download.
+     * @param string $destination The destination path to save the downloaded file.
+     * @return bool True if the file was downloaded successfully, false otherwise.
      */
     protected function downloadFile(string $url, string $destination): bool
     {
         try {
+             /** @var string|false $content */
             $content = @file_get_contents($url);
             if ($content === false) {
                 return false;
