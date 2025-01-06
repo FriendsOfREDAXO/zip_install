@@ -106,3 +106,4 @@ $fragment = new rex_fragment();
 $fragment->setVar('title', 'ZIP URL');
 $fragment->setVar('body', $urlContent, false);
 echo $fragment->parse('core/page/section.php');
+
