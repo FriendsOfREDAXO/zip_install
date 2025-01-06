@@ -2,7 +2,7 @@
 
 Dieses AddOn ermöglicht die einfache Installation von AddOns oder Plugins durch Hochladen von ZIP-Dateien, Installation über eine URL oder direkt von GitHub.
 
-**WICHTIGER HINWEIS: Dieses AddOn sind ausschließlich für erfahrene Systemadministrator:innen bestimmt. Die unsachgemäße Anwendung kann zu unerwartetem Verhalten oder Schäden führen.**
+**WICHTIGER HINWEIS: Dieses AddOn ist ausschließlich für erfahrene Systemadministrator:innen bestimmt. Die unsachgemäße Anwendung kann zu unerwartetem Verhalten oder Schäden führen.**
 
 ![Screenshot](https://raw.githubusercontent.com/FriendsOfREDAXO/zip_install/assets/zip2.png)
 
