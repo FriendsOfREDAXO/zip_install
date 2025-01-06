@@ -1,85 +1,132 @@
-/* 
-    Farbschema für REDAXO Installer AddOn
-*/
-
-:root {
-    --rex-zip-primary: #2a6b9c;
-    --rex-zip-primary-hover: #22567e;
-    --rex-zip-background: #fff;
-    --rex-zip-background-subtle: #f5f5f5;
-    --rex-zip-border: #dfe3e9;
-    --rex-zip-text: #324050;
-    --rex-zip-text-light: #66727d;
-    --rex-zip-panel-shadow: rgba(0, 0, 0, 0.05);
+/* CSS-Variablen für Light/Dark Mode */
+:root,
+.rex-theme-light {
+    --zip-bg-color: #fff;
+    --zip-border-color: #e9ecef;
+    --zip-shadow-color: rgba(0, 0, 0, 0.1);
+    --zip-text-color: #324050;
+    --zip-text-light: #66727d;
+    --zip-hover-bg: rgba(0, 0, 0, 0.03);
+    --zip-card-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --zip-transition: 0.3s ease;
 }
 
-/* Dark theme */
-[data-theme="dark"] {
-    --rex-zip-primary: #4b9de5;
-    --rex-zip-primary-hover: #3d8ed6;
-    --rex-zip-background: #202b35;
-    --rex-zip-background-subtle: #293643;
-    --rex-zip-border: #364654;
-    --rex-zip-text: #f0f3f6;
-    --rex-zip-text-light: #bbc5ce;
-    --rex-zip-panel-shadow: rgba(0, 0, 0, 0.2);
+/* Dark Mode Variablen */
+@media (prefers-color-scheme: dark) {
+    :root:not(.rex-theme-light) {
+        --zip-bg-color: #32373c;
+        --zip-border-color: #404850;
+        --zip-shadow-color: rgba(0, 0, 0, 0.25);
+        --zip-text-color: #f0f3f6;
+        --zip-text-light: #bbc5ce;
+        --zip-hover-bg: rgba(255, 255, 255, 0.05);
+        --zip-card-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
 }
 
-/* Spezifische Styles für das ZIP Install AddOn */
+/* REDAXO Dark Mode */
+.rex-theme-dark {
+    --zip-bg-color: #32373c;
+    --zip-border-color: #404850;
+    --zip-shadow-color: rgba(0, 0, 0, 0.25);
+    --zip-text-color: #f0f3f6;
+    --zip-text-light: #bbc5ce;
+    --zip-hover-bg: rgba(255, 255, 255, 0.05);
+    --zip-card-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Repo Liste */
 #zip_install_repos {
     margin-top: 20px;
 }
 
-#zip_install_repos .zip-panel {
-    border: 1px solid var(--rex-zip-border);
-    background: var(--rex-zip-background);
-    box-shadow: 0 1px 3px var(--rex-zip-panel-shadow);
-    border-radius: 3px;
-    margin-bottom: 10px;
+.zip-panel {
+    background: var(--zip-bg-color);
+    border: 1px solid var(--zip-border-color);
+    box-shadow: var(--zip-card-shadow);
+    border-radius: 4px;
+    margin-bottom: 20px;
+    transition: var(--zip-transition);
 }
 
-#zip_install_repos .zip-panel-header {
-    padding: 10px 15px;
-    border-bottom: 1px solid var(--rex-zip-border);
-    background: var(--rex-zip-background-subtle);
+.zip-panel:hover {
+    box-shadow: 0 4px 8px var(--zip-shadow-color);
 }
 
-#zip_install_repos .zip-panel-title {
+.zip-panel-header {
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--zip-border-color);
+    background: var(--zip-bg-color);
+}
+
+.zip-panel-title {
     font-size: 14px;
     font-weight: 600;
-    color: var(--rex-zip-text);
+    color: var(--zip-text-color);
     margin: 0;
 }
 
-#zip_install_repos .zip-panel-title a {
-    color: var(--rex-zip-primary);
+.zip-panel-title a {
+    color: var(--zip-text-color);
     text-decoration: none;
+    transition: var(--zip-transition);
 }
 
-#zip_install_repos .zip-panel-title a:hover {
-    color: var(--rex-zip-primary-hover);
+.zip-panel-title a:hover {
+    opacity: 0.8;
 }
 
-#zip_install_repos .zip-panel-body {
+.zip-panel-body {
     padding: 15px;
-    background: var(--rex-zip-background);
+    background: var(--zip-bg-color);
 }
 
-#zip_install_repos .zip-description {
+.zip-description {
     margin-bottom: 15px;
-    color: var(--rex-zip-text-light);
+    color: var(--zip-text-light);
+    min-height: 40px;
 }
 
-/* Mobile Anpassungen für eigene Elemente */
+/* Form Elemente */
+.form-group label {
+    color: var(--zip-text-color);
+    font-weight: 600;
+}
+
+.form-group .help-block {
+    color: var(--zip-text-light);
+}
+
+/* Pagination */
+.zip-pagination {
+    margin: 20px 0;
+    display: flex;
+    justify-content: space-between;
+}
+
+.zip-pagination .btn {
+    background: var(--zip-bg-color);
+    border-color: var(--zip-border-color);
+    color: var(--zip-text-color);
+}
+
+.zip-pagination .btn:hover {
+    background: var(--zip-hover-bg);
+}
+
+/* Mobile Anpassungen */
 @media (max-width: 767px) {
-    #zip_install_repos .zip-panel-body .zip-button-container {
-        display: block;
-        margin-top: 10px;
-    }
-    
-    #zip_install_repos .zip-panel-body .zip-button-container .btn {
-        display: block;
+    .zip-panel-body .btn {
         width: 100%;
         margin-bottom: 5px;
+    }
+    
+    .zip-pagination {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .zip-pagination .btn {
+        width: 100%;
     }
 }

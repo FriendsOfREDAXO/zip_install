@@ -1,3 +1,6 @@
+zip_install_previous = Vorherige
+zip_install_next = Nächste
+
 zip_install = Zip Install
 zip_install_title = ZIP Upload / GitHub
 
@@ -25,15 +28,9 @@ zip_install_missing_addon = Das Plugin konnte nicht installiert werden, da das z
 zip_install_size_error = Die Datei überschreitet die maximale Upload-Größe von {0} MB.
 
 zip_install_install_succeed = Das AddOn wurde erfolgreich entpackt. <a href="index.php?page=packages">Zu den AddOns</a>
-zip_install_install_failed = Das AddOn konnte nicht installiert werden.
-
-zip_install_settings_saved = Die Einstellungen wurden gespeichert.
-zip_install_settings_error = Die Einstellungen konnten nicht gespeichert werden.
+zip_install_plugin_install_succeed = Das Plugin wurde erfolgreich entpackt. <a href="index.php?page=packages">Zu den AddOns</a>
 
 zip_install_security_warning = Bitte beachten: Installieren Sie nur AddOns aus vertrauenswürdigen Quellen!
-
-zip_install_github_token = GitHub Token
-zip_install_github_token_info = Optional. Ein GitHub Token erhöht das stündliche API-Limit von 60 auf 5000 Anfragen.
 
 #permissions
 perm_general_zip_install[] = Rechte für ZIP Upload/GitHub Installation

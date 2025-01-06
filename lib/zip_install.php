@@ -17,20 +17,24 @@ use ZipArchive;
 
 class ZipInstall
 {
-    private const GITHUB_API_URL = 'https://api.github.com';
-    private const GITHUB_MAIN_BRANCHES = ['main', 'master'];
-
-    private rex_addon $addon;
-    private string $tmpFolder;
+    protected rex_addon $addon;
+    protected string $tmpFolder;
 
     public function __construct()
     {
         $this->addon = rex_addon::get('zip_install');
         $this->tmpFolder = $this->addon->getCachePath('tmp_uploads');
-        
+
         // Ensure temp folder exists
         if (!is_dir($this->tmpFolder)) {
-            rex_dir::create($this->tmpFolder);
+            try {
+                rex_dir::create($this->tmpFolder);
+            } catch (Exception $e) {
+                // Log the exception or handle it as needed
+                trigger_error('Error creating temp directory: ' . $e->getMessage(), E_USER_WARNING);
+                // Possibly throw another exception or return an error message
+                return;
+            }
         }
     }
 
@@ -39,39 +43,41 @@ class ZipInstall
      */
     public function handleFileUpload(): string
     {
-        $uploadedFile = $_FILES['zip_file'] ?? null;
-        if (!$uploadedFile) {
+        if (!isset($_FILES['zip_file'])) {
             return rex_view::error(rex_i18n::msg('zip_install_upload_failed'));
         }
+
+        $uploadedFile = $_FILES['zip_file'];
 
         // Check filesize
-        $maxSize = $this->addon->getConfig('upload_max_size') * 1024 * 1024; // Convert MB to bytes
+        $maxSize = $this->addon->getConfig('upload_max_size', 20) * 1024 * 1024; // Convert MB to bytes
         if ($uploadedFile['size'] > $maxSize) {
-            return rex_view::error(rex_i18n::msg('zip_install_size_error', $this->addon->getConfig('upload_max_size')));
+            return rex_view::error(rex_i18n::msg('zip_install_size_error', $this->addon->getConfig('upload_max_size', 20)));
         }
 
-        // Check if it's a ZIP
-        if ($uploadedFile['type'] !== 'application/zip' && pathinfo($uploadedFile['name'], PATHINFO_EXTENSION) !== 'zip') {
-            return rex_view::error(rex_i18n::msg('zip_install_invalid_file'));
+        $tmpFile = $this->tmpFolder . '/temp.zip';
+        try {
+            if (!move_uploaded_file($uploadedFile['tmp_name'], $tmpFile)) {
+                 throw new Exception(rex_i18n::msg('zip_install_upload_failed'));
+            }
+        } catch (Exception $e) {
+            return rex_view::error(rex_i18n::msg('zip_install_upload_failed') . ' ' . $e->getMessage());
         }
 
-        $tmpFile = $this->tmpFolder . '/'. basename($uploadedFile['name']);
-        
-        if (!move_uploaded_file($uploadedFile['tmp_name'], $tmpFile)) {
-            return rex_view::error(rex_i18n::msg('zip_install_upload_failed'));
-        }
-
-        return $this->handleZipFile($tmpFile);
+        return $this->installZip($tmpFile);
     }
 
     /**
      * Handle URL input (direct ZIP or GitHub URL)
      */
-    public function handleUrlInput(string $url): string 
+    public function handleUrlInput(string $url): string
     {
         if (empty($url)) {
             return rex_view::error(rex_i18n::msg('zip_install_invalid_url'));
         }
+
+        // Remove trailing slash if exists
+        $url = rtrim($url, '/');
 
         // Check if it's a GitHub repository URL
         if (preg_match('/^https:\/\/github\.com\/([^\/]+)\/([^\/]+)(\/tree\/([^\/]+))?$/i', $url, $matches)) {
@@ -79,48 +85,142 @@ class ZipInstall
             $repo = $matches[2];
             $branch = $matches[4] ?? null;
 
-            return $this->handleGitHubRepo($owner, $repo, $branch);
+            if ($branch) {
+                $downloadUrl = "https://github.com/$owner/$repo/archive/refs/heads/$branch.zip";
+            } else {
+                // Try main/master branch
+                $downloadUrl = "https://github.com/$owner/$repo/archive/refs/heads/main.zip";
+
+                // If main doesn't exist, try master
+                if (!$this->isValidUrl($downloadUrl)) {
+                    $downloadUrl = "https://github.com/$owner/$repo/archive/refs/heads/master.zip";
+                }
+            }
+            $url = $downloadUrl;
         }
 
-        // Direct ZIP URL
-        if (!filter_var($url, FILTER_VALIDATE_URL)) {
-            return rex_view::error(rex_i18n::msg('zip_install_invalid_url'));
-        }
-
+        // Download file
         $tmpFile = $this->tmpFolder . '/download.zip';
         if (!$this->downloadFile($url, $tmpFile)) {
-            return rex_view::error(rex_i18n::msg('zip_install_invalid_url'));
+            return rex_view::error(rex_i18n::msg('zip_install_url_file_not_loaded'));
         }
 
-        return $this->handleZipFile($tmpFile);
+        return $this->installZip($tmpFile);
     }
 
     /**
-     * Handle GitHub repository
+     * Install ZIP file
      */
-    private function handleGitHubRepo(string $owner, string $repo, ?string $branch = null): string
+    protected function installZip(string $tmpFile): string
     {
-        if ($branch) {
-            $downloadUrl = "https://github.com/$owner/$repo/archive/refs/heads/$branch.zip";
-        } else {
-            // Try main branches
-            foreach (self::GITHUB_MAIN_BRANCHES as $mainBranch) {
-                $downloadUrl = "https://github.com/$owner/$repo/archive/refs/heads/$mainBranch.zip";
-                $tmpFile = $this->tmpFolder . '/github.zip';
-                
-                if ($this->downloadFile($downloadUrl, $tmpFile)) {
-                    return $this->handleZipFile($tmpFile);
+        $error = false;
+        $isPlugin = false;
+        $parentIsMissing = false;
+        $folderName = '';
+        $packageFile = false;
+        $extractPath = $this->tmpFolder . '/extract/'; // Define here to ensure its existence for the finally block
+
+
+        try {
+            $zip = new ZipArchive();
+            if ($zip->open($tmpFile) !== true) {
+                throw new Exception(rex_i18n::msg('zip_install_invalid_addon'));
+            }
+
+            // Check first entry and look for package.yml
+            $i = 1;
+            for ($i = 0; $i < $zip->numFiles; $i++) {
+                $stat = $zip->statIndex($i);
+                $filename = $stat['name'];
+
+                if ($i == 0) {
+                    // First entry must be a directory
+                    if (!str_ends_with($filename, '/')) {
+                        $error = true;
+                        break;
+                    }
+                    $folderName = $filename;
+                }
+
+                // Find first package.yml
+                if (!$packageFile && str_contains($filename, 'package.yml')) {
+                    $packageFile = $filename;
                 }
             }
-            return rex_view::error(rex_i18n::msg('zip_install_invalid_url'));
+
+            if ($error || !$packageFile) {
+                throw new Exception(rex_i18n::msg('zip_install_invalid_addon'));
+            }
+
+            // Extract to temp folder
+             if (!is_dir($extractPath)) {
+                rex_dir::create($extractPath);
+            }
+            
+            if (!$zip->extractTo($extractPath)) {
+                throw new Exception(rex_i18n::msg('zip_install_invalid_addon'));
+            }
+            $zip->close();
+
+
+            // Read package.yml
+            $config = rex_file::getConfig($extractPath . $packageFile);
+            if (empty($config['package'])) {
+                throw new Exception(rex_i18n::msg('zip_install_invalid_addon'));
+            }
+
+            // Handle plugins
+            $pluginCheck = explode('/', $config['package']);
+            if (count($pluginCheck) > 1) {
+                $isPlugin = true;
+                // Check if parent exists
+                if (rex_dir::isWritable(rex_path::addon($pluginCheck[0]))) {
+                    // Copy plugin to correct location
+                    if (!rex_dir::copy(
+                        $extractPath . $folderName,
+                        rex_path::addon($pluginCheck[0], 'plugins/' . $pluginCheck[1])
+                    )) {
+                        $error = true;
+                    }
+                } else {
+                    $parentIsMissing = true;
+                    $error = true;
+                }
+            } else {
+                // Copy addon
+                if (!rex_dir::copy($extractPath . $folderName, rex_path::addon($config['package']))) {
+                    $error = true;
+                }
+            }
+
+        } catch (Exception $e) {
+            $error = true;
+             trigger_error('Error during installation: ' . $e->getMessage(), E_USER_WARNING);
+        } finally {
+            // Cleanup
+            rex_dir::delete($extractPath);
+            @unlink($tmpFile); // Use @ to suppress warnings if unlink fails
         }
 
-        $tmpFile = $this->tmpFolder . '/github.zip';
-        if (!$this->downloadFile($downloadUrl, $tmpFile)) {
-            return rex_view::error(rex_i18n::msg('zip_install_invalid_url'));
+        if (!$error) {
+            if ($isPlugin) {
+                return rex_view::success(str_replace(
+                    '%%plugin%%',
+                    $config['package'],
+                    rex_i18n::rawMsg('zip_install_plugin_install_succeed')
+                ));
+            }
+            return rex_view::success(str_replace(
+                '%%addon%%',
+                $config['package'],
+                rex_i18n::rawMsg('zip_install_install_succeed')
+            ));
         }
 
-        return $this->handleZipFile($tmpFile);
+        if ($parentIsMissing) {
+            return rex_view::error(rex_i18n::msg('zip_install_plugin_parent_missing'));
+        }
+        return rex_view::error(rex_i18n::msg('zip_install_invalid_addon'));
     }
 
     /**
@@ -128,148 +228,106 @@ class ZipInstall
      */
     public function getGitHubRepos(string $username): array
     {
-        $url = self::GITHUB_API_URL . '/users/' . urlencode($username) . '/repos';
-        $options = [
-            'http' => [
-                'method' => 'GET',
-                'header' => [
-                    'User-Agent: REDAXOZipInstall',
-                    'Accept: application/vnd.github.v3+json'
+        $username = trim($username, '@/ '); // Remove @ and slashes if present
+        $url = 'https://api.github.com/users/' . urlencode($username) . '/repos?per_page=100'; // Increased per_page and added for limit
+        $allRepos = [];
+        $page = 1;
+        $perPage = 100; // You can fetch max 100 per page
+        
+        while (count($allRepos) < 200) { // Limit total repos to 200
+        
+            $url = 'https://api.github.com/users/' . urlencode($username) . '/repos?per_page=' . $perPage . '&page=' . $page;
+           
+            $options = [
+                'http' => [
+                    'method' => 'GET',
+                    'header' => [
+                        'User-Agent: REDAXOZipInstall',
+                        'Accept: application/vnd.github.v3+json'
+                    ]
                 ]
-            ]
-        ];
+            ];
 
-        // Add token if configured
-        $token = $this->addon->getConfig('github_token');
-        if ($token) {
-            $options['http']['header'][] = 'Authorization: token ' . $token;
-        }
+            $context = stream_context_create($options);
+            $response = @file_get_contents($url, false, $context);
 
-        $context = stream_context_create($options);
-        $response = @file_get_contents($url, false, $context);
 
-        if ($response === false) {
-            return [];
-        }
-
-        $repos = json_decode($response, true);
-        if (!is_array($repos)) {
-            return [];
-        }
-
-        // Filter and format repos
-        $filtered = [];
-        foreach ($repos as $repo) {
-            if (!$repo['fork'] && !$repo['archived'] && !$repo['disabled']) {
-                $filtered[] = [
-                    'name' => $repo['name'],
-                    'description' => $repo['description'],
-                    'url' => $repo['html_url'],
-                    'default_branch' => $repo['default_branch']
-                ];
-            }
-        }
-
-        return $filtered;
-    }
-
-    /**
-     * Process uploaded/downloaded ZIP file
-     */
-    private function handleZipFile(string $zipFile): string
-    {
-        if (!file_exists($zipFile)) {
-            return rex_view::error(rex_i18n::msg('zip_install_upload_failed'));
-        }
-
-        try {
-            $zip = new ZipArchive();
-            if ($zip->open($zipFile) !== true) {
-                throw new Exception(rex_i18n::msg('zip_install_invalid_file'));
+             if ($response === false) {
+                break; // if API call fails, stop pagination
+                
             }
 
-            // Get the first directory in the ZIP
-            $firstDir = $this->getFirstDirectory($zip);
-            if (!$firstDir) {
-                throw new Exception(rex_i18n::msg('zip_install_invalid_addon'));
+             $repos = json_decode($response, true);
+             
+            if (!is_array($repos)) {
+                break; // if response is not array, stop pagination
             }
 
-            // Extract to temp directory
-            $extractPath = $this->tmpFolder . '/extract/';
-            if (!$zip->extractTo($extractPath)) {
-                throw new Exception(rex_i18n::msg('zip_install_upload_failed'));
+            if (empty($repos)) {
+                break; // No more repos, stop pagination
             }
-            $zip->close();
-
-            // Check if it's a valid addon
-            $packageFile = $extractPath . $firstDir . 'package.yml';
-            if (!file_exists($packageFile)) {
-                throw new Exception(rex_i18n::msg('zip_install_invalid_addon'));
-            }
-
-            $config = rex_file::getConfig($packageFile);
-            if (empty($config['package'])) {
-                throw new Exception(rex_i18n::msg('zip_install_invalid_addon'));
-            }
-
-            // Handle plugin
-            $isPlugin = str_contains($config['package'], '/');
-            if ($isPlugin) {
-                [$addon, $plugin] = explode('/', $config['package']);
-                if (!rex_addon::exists($addon)) {
-                    throw new Exception(rex_i18n::msg('zip_install_missing_addon'));
+            
+             
+           // Filter and format repos
+            foreach ($repos as $repo) {
+                if (count($allRepos) >= 200){
+                    break 2; // Exit both foreach and while loop
                 }
-                $targetDir = rex_path::plugin($addon, $plugin);
-            } else {
-                $targetDir = rex_path::addon($config['package']);
+                
+                // Check if the repo name starts with a dot
+                 if (str_starts_with($repo['name'], '.')) {
+                    continue; // Skip this repository
+                }
+                
+                 if (!$repo['fork'] && !$repo['archived'] && !$repo['disabled']) {
+                     $downloadUrl = $repo['default_branch'] === 'main'
+                        ? $repo['html_url'] . '/archive/refs/heads/main.zip'
+                        : $repo['html_url'] . '/archive/refs/heads/master.zip';
+                    
+                    $allRepos[] = [
+                        'name' => $repo['name'],
+                        'description' => $repo['description'],
+                        'url' => $repo['html_url'],
+                        'download_url' => $downloadUrl,
+                        'default_branch' => $repo['default_branch']
+                    ];
+                }
             }
 
-            // Move to final destination
-            if (!rex_dir::copy($extractPath . $firstDir, $targetDir)) {
-                throw new Exception(rex_i18n::msg('zip_install_install_failed'));
-            }
-
-            // Cleanup
-            rex_dir::delete($extractPath);
-            unlink($zipFile);
-
-            return rex_view::success(rex_i18n::msg('zip_install_install_succeed'));
-
-        } catch (Exception $e) {
-            // Cleanup on error
-            if (isset($extractPath) && is_dir($extractPath)) {
-                rex_dir::delete($extractPath);
-            }
-            if (file_exists($zipFile)) {
-                unlink($zipFile);
-            }
-            return rex_view::error($e->getMessage());
+            $page++; // Increment page for next call
         }
+
+        return $allRepos;
     }
 
     /**
-     * Get first directory in ZIP file
+     * Check if URL is valid and accessible
      */
-    private function getFirstDirectory(ZipArchive $zip): ?string
+    protected function isValidUrl(string $url): bool
     {
-        for ($i = 0; $i < $zip->numFiles; $i++) {
-            $name = $zip->getNameIndex($i);
-            if (substr($name, -1) === '/' && strpos($name, '/', 1) === false) {
-                return $name;
-            }
+         try {
+            $headers = @get_headers($url);
+            return $headers && str_contains($headers[0], '200');
+        } catch (Exception $e) {
+             trigger_error('Error checking URL validity: ' . $e->getMessage(), E_USER_WARNING);
+            return false; // In case of an exception consider the URL invalid
         }
-        return null;
     }
 
     /**
      * Download file from URL
      */
-    private function downloadFile(string $url, string $destination): bool
+    protected function downloadFile(string $url, string $destination): bool
     {
-        $content = @file_get_contents($url);
-        if ($content === false) {
+        try {
+            $content = @file_get_contents($url);
+            if ($content === false) {
+                return false;
+            }
+            return rex_file::put($destination, $content);
+        } catch (Exception $e) {
+            trigger_error('Error downloading file: ' . $e->getMessage(), E_USER_WARNING);
             return false;
         }
-        return rex_file::put($destination, $content);
     }
 }
