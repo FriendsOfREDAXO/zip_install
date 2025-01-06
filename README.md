@@ -47,7 +47,7 @@ Plugins werden automatisch in das entsprechende Verzeichnis des zugehörigen Add
 *   Es wird keine Installation oder Neuinstallation durchgeführt.
 *   Abhängigkeiten werden nicht geprüft.
 *   Die `update.php` des AddOns wird nicht ausgeführt.
-*   Der Upload ist auf 20 MB begrenzt (kann in den Einstellungen angepasst werden).
+*   Der Upload ist auf 50 MB begrenzt.
 
 ## Voraussetzungen
 
