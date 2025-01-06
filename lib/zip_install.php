@@ -59,6 +59,12 @@ class ZipInstall
         /** @var array{name: string, type: string, tmp_name: string, error: int, size: int} $uploadedFile */
         $uploadedFile = $_FILES['zip_file'];
 
+        // Check mime type
+        $allowedMimeTypes = ['application/zip', 'application/octet-stream'];
+         if (!in_array($uploadedFile['type'], $allowedMimeTypes)) {
+             return rex_view::error(rex_i18n::msg('zip_install_mime_error'));
+         }
+
 
         // Check filesize
         $maxSize = $this->addon->getConfig('upload_max_size', 20) * 1024 * 1024; // Convert MB to bytes
@@ -66,7 +72,7 @@ class ZipInstall
             return rex_view::error(rex_i18n::msg('zip_install_size_error', $this->addon->getConfig('upload_max_size', 20)));
         }
 
-        $tmpFile = $this->tmpFolder . '/temp.zip';
+       $tmpFile = $this->tmpFolder . '/' . uniqid('upload_') . '.zip'; // Generate unique filename
         try {
             if (!move_uploaded_file($uploadedFile['tmp_name'], $tmpFile)) {
                  throw new Exception(rex_i18n::msg('zip_install_upload_failed'));
@@ -114,7 +120,7 @@ class ZipInstall
         }
 
         // Download file
-        $tmpFile = $this->tmpFolder . '/download.zip';
+         $tmpFile = $this->tmpFolder . '/' . uniqid('download_') . '.zip'; // Generate unique filename
         if (!$this->downloadFile($url, $tmpFile)) {
             return rex_view::error(rex_i18n::msg('zip_install_url_file_not_loaded'));
         }
