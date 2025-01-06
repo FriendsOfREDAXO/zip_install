@@ -14,12 +14,17 @@ pages:
         title: translate:title
         icon: rex-icon fa-upload
         perm: admin[]
-        pjax: true  # hier aktivieren wir pjax
+        pjax: true
+        
+    install/packages/zip_install/settings:
+        title: translate:settings
+        perm: admin[]
+        pjax: true
         
 conflicts:
     packages:
-        install/packages/upload: '<2.0.0' # wegen möglicher seitenüberschneidung
+        install/packages/upload: '<2.0.0'
 
 default_config:
-    upload_max_size: 20 # in MB
-    github_token: '' # für die GitHub API
+    upload_max_size: 20
+    github_token: ''
