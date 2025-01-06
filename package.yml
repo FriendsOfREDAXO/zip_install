@@ -21,5 +21,4 @@ conflicts:
         install/packages/upload: '<2.0.0'
 
 default_config:
-    upload_max_size: 20
-    
+    upload_max_size: 50
