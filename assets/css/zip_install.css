@@ -1,0 +1,132 @@
+/* CSS-Variablen für Light/Dark Mode */
+:root,
+.rex-theme-light {
+    --zip-bg-color: #fff;
+    --zip-border-color: #e9ecef;
+    --zip-shadow-color: rgba(0, 0, 0, 0.1);
+    --zip-text-color: #324050;
+    --zip-text-light: #66727d;
+    --zip-hover-bg: rgba(0, 0, 0, 0.03);
+    --zip-card-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --zip-transition: 0.3s ease;
+}
+
+/* Dark Mode Variablen */
+@media (prefers-color-scheme: dark) {
+    :root:not(.rex-theme-light) {
+        --zip-bg-color: #32373c;
+        --zip-border-color: #404850;
+        --zip-shadow-color: rgba(0, 0, 0, 0.25);
+        --zip-text-color: #f0f3f6;
+        --zip-text-light: #bbc5ce;
+        --zip-hover-bg: rgba(255, 255, 255, 0.05);
+        --zip-card-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+}
+
+/* REDAXO Dark Mode */
+.rex-theme-dark {
+    --zip-bg-color: #32373c;
+    --zip-border-color: #404850;
+    --zip-shadow-color: rgba(0, 0, 0, 0.25);
+    --zip-text-color: #f0f3f6;
+    --zip-text-light: #bbc5ce;
+    --zip-hover-bg: rgba(255, 255, 255, 0.05);
+    --zip-card-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Repo Liste */
+#zip_install_repos {
+    margin-top: 20px;
+}
+
+.zip-panel {
+    background: var(--zip-bg-color);
+    border: 1px solid var(--zip-border-color);
+    box-shadow: var(--zip-card-shadow);
+    border-radius: 4px;
+    margin-bottom: 20px;
+    transition: var(--zip-transition);
+}
+
+.zip-panel:hover {
+    box-shadow: 0 4px 8px var(--zip-shadow-color);
+}
+
+.zip-panel-header {
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--zip-border-color);
+    background: var(--zip-bg-color);
+}
+
+.zip-panel-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--zip-text-color);
+    margin: 0;
+}
+
+.zip-panel-title a {
+    color: var(--zip-text-color);
+    text-decoration: none;
+    transition: var(--zip-transition);
+}
+
+.zip-panel-title a:hover {
+    opacity: 0.8;
+}
+
+.zip-panel-body {
+    padding: 15px;
+    background: var(--zip-bg-color);
+}
+
+.zip-description {
+    margin-bottom: 15px;
+    color: var(--zip-text-light);
+    min-height: 40px;
+}
+
+/* Form Elemente */
+.form-group label {
+    color: var(--zip-text-color);
+    font-weight: 600;
+}
+
+.form-group .help-block {
+    color: var(--zip-text-light);
+}
+
+/* Pagination */
+.zip-pagination {
+    margin: 20px 0;
+    display: flex;
+    justify-content: space-between;
+}
+
+.zip-pagination .btn {
+    background: var(--zip-bg-color);
+    border-color: var(--zip-border-color);
+    color: var(--zip-text-color);
+}
+
+.zip-pagination .btn:hover {
+    background: var(--zip-hover-bg);
+}
+
+/* Mobile Anpassungen */
+@media (max-width: 767px) {
+    .zip-panel-body .btn {
+        width: 100%;
+        margin-bottom: 5px;
+    }
+    
+    .zip-pagination {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .zip-pagination .btn {
+        width: 100%;
+    }
+}
