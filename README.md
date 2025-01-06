@@ -2,7 +2,7 @@
 
 Mit diesem AddOn kannst du AddOns oder Plugins einfach als ZIP-Datei hochladen, über eine URL installieren oder direkt von GitHub laden.
 
-![Screenshot](https://raw.githubusercontent.com/FriendsOfREDAXO/zip_install/assets/screen.png)
+![Screenshot](https://raw.githubusercontent.com/FriendsOfREDAXO/zip_install/assets/zip2.png)
 
 ## Features
 
