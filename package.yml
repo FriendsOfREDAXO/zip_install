@@ -16,15 +16,10 @@ pages:
         perm: admin[]
         pjax: true
         
-    install/packages/zip_install/settings:
-        title: translate:settings
-        perm: admin[]
-        pjax: true
-        
 conflicts:
     packages:
         install/packages/upload: '<2.0.0'
 
 default_config:
     upload_max_size: 20
-    github_token: ''
+    
