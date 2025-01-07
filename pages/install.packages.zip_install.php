@@ -61,7 +61,7 @@ if (isset($repos) && is_array($repos)) {
                 <div class="zip-panel-body">
                     <div class="zip-description">' . rex_escape($repo['description']) . '</div>
                     <form method="post">
-                        ' . r$csrfField . '
+                        ' . $csrfField . '
                         <input type="hidden" name="zip_url" value="' . $repo['download_url'] . '">
                         <div class="zip-button-container">
                             <button type="submit" class="btn btn-primary">Installieren</button>
