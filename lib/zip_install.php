@@ -84,7 +84,7 @@ class ZipInstall
          }
 
         // Check filesize
-        $maxSize = $this->addon->getConfig('upload_max_size', 20) * 1024 * 1024; // Convert MB to bytes
+        $maxSize = $this->addon->getConfig('upload_max_size', 50) * 1024 * 1024; // Convert MB to bytes
         if ($uploadedFile['size'] > $maxSize) {
             return rex_view::error(rex_i18n::msg('zip_install_size_error', $this->addon->getConfig('upload_max_size', 20)));
         }
