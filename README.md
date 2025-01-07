@@ -263,8 +263,11 @@ MIT Lizenz, siehe [LICENSE.md](LICENSE.md)
 
 *   [Friends Of REDAXO](https://github.com/FriendsOfREDAXO)
 
+## Lead
+[Thomas Skerbis](https://github.com/skerbis)  
+
+
+
 ## Danksagung
 
 *   Ursprüngliches AddOn von [@aeberhard](https://github.com/aeberhard)
-*   GitHub-Integration inspiriert von [@skerbis](https://github.com/skerbis)
-*   Weiterentwicklung durch die [Friends Of REDAXO](https://github.com/FriendsOfREDAXO)
