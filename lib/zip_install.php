@@ -283,80 +283,115 @@ class ZipInstall
  * @param string $username The GitHub username or organization name.
  * @return array Returns an array of GitHub repositories.
  */
+/**
+ * Get GitHub repositories for user/organization
+ *
+ * @param string $username The GitHub username or organization name.
+ * @return array Returns an array of GitHub repositories.
+ */
 public function getGitHubRepos(string $username): array
-{
-    $username = trim($username, '@/ ');
-    $allRepos = [];
-    $page = 1;
-    $perPage = 100;
-    
-    $options = [
-        'http' => [
-            'method' => 'GET',
-            'header' => [
-                'User-Agent: REDAXOZipInstall/2.0',
-                'Accept: application/vnd.github.v3+json'
-            ]
-        ]
-    ];
-
-    $context = stream_context_create($options);
-    
-    while (count($allRepos) < 200) {
-        $url = sprintf(
-            'https://api.github.com/users/%s/repos?per_page=%d&page=%d', 
-            urlencode($username), 
-            $perPage, 
-            $page
-        );
+    {
+        $username = trim($username, '@/ ');
+        $allRepos = [];
+        $page = 1;
+        $perPage = 100;
         
-        try {
-            $response = @file_get_contents($url, false, $context);
-            if ($response === false) {
-                rex_logger::logError(E_WARNING, 'Failed to fetch GitHub repos from: ' . $url, __FILE__, __LINE__);
-                break;
-            }
+        // Get GitHub token from config if available
+        $token = $this->addon->getConfig('github_token');
+        
+        $headers = [
+            'User-Agent: REDAXOZipInstall/2.0',
+            'Accept: application/vnd.github.v3+json'
+        ];
+        
+        // Add authorization header if token is available
+        if ($token) {
+            $headers[] = 'Authorization: Bearer ' . $token;
+        }
+        
+        $options = [
+            'http' => [
+                'method' => 'GET',
+                'header' => implode("\r\n", $headers)
+            ]
+        ];
 
-            $repos = json_decode($response, true);
-            if (!is_array($repos) || empty($repos)) {
-                break;
-            }
-
-            foreach ($repos as $repo) {
-                if (count($allRepos) >= 200) {
-                    break 2;
+        $context = stream_context_create($options);
+        
+        while (count($allRepos) < 200) {
+            $url = sprintf(
+                'https://api.github.com/users/%s/repos?per_page=%d&page=%d', 
+                urlencode($username), 
+                $perPage, 
+                $page
+            );
+            
+            try {
+                $response = @file_get_contents($url, false, $context);
+                
+                // Check for rate limit headers
+                if (isset($http_response_header)) {
+                    foreach ($http_response_header as $header) {
+                        if (stripos($header, 'X-RateLimit-Remaining:') === 0) {
+                            $remaining = intval(trim(substr($header, 21)));
+                            if ($remaining <= 5) {
+                                // Using warning level for rate limit notifications
+                                \rex_logger::factory()->log(\Psr\Log\LogLevel::WARNING, 
+                                    'GitHub API Rate Limit is getting low: ' . $remaining . ' requests remaining'
+                                );
+                            }
+                        }
+                    }
                 }
                 
-                if (str_starts_with($repo['name'], '.') || $repo['fork'] || $repo['archived'] || $repo['disabled']) {
-                    continue;
+                if ($response === false) {
+                    // Using error level for failed requests
+                    \rex_logger::factory()->log(\Psr\Log\LogLevel::ERROR, 
+                        'Failed to fetch GitHub repos from: ' . $url
+                    );
+                    break;
                 }
-                
-                $downloadUrl = $repo['default_branch'] === 'main'
-                    ? $repo['html_url'] . '/archive/refs/heads/main.zip'
-                    : $repo['html_url'] . '/archive/refs/heads/master.zip';
+
+                $repos = json_decode($response, true);
+                if (!is_array($repos) || empty($repos)) {
+                    break;
+                }
+
+                foreach ($repos as $repo) {
+                    if (count($allRepos) >= 200) {
+                        break 2;
+                    }
                     
-                $allRepos[] = [
-                    'name' => $repo['name'],
-                    'description' => $repo['description'],
-                    'url' => $repo['html_url'],
-                    'download_url' => $downloadUrl,
-                    'default_branch' => $repo['default_branch'],
-                    'topics' => $repo['topics'] ?? [],
-                    'homepage' => $repo['homepage'] ?? null
-                ];
+                    if (str_starts_with($repo['name'], '.') || $repo['fork'] || $repo['archived'] || $repo['disabled']) {
+                        continue;
+                    }
+                    
+                    $downloadUrl = $repo['default_branch'] === 'main'
+                        ? $repo['html_url'] . '/archive/refs/heads/main.zip'
+                        : $repo['html_url'] . '/archive/refs/heads/master.zip';
+                        
+                    $allRepos[] = [
+                        'name' => $repo['name'],
+                        'description' => $repo['description'],
+                        'url' => $repo['html_url'],
+                        'download_url' => $downloadUrl,
+                        'default_branch' => $repo['default_branch'],
+                        'topics' => $repo['topics'] ?? [],
+                        'homepage' => $repo['homepage'] ?? null
+                    ];
+                }
+
+            } catch (Exception $e) {
+                // Using logException for caught exceptions
+                \rex_logger::logException($e);
+                break;
             }
 
-        } catch (Exception $e) {
-            rex_logger::logException($e);
-            break;
+            $page++;
         }
 
-        $page++;
+        return $allRepos;
     }
-
-    return $allRepos;
-}
-
     /**
      * Check if URL is valid and accessible
      *
