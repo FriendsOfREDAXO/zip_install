@@ -23,3 +23,4 @@ conflicts:
 
 default_config:
     upload_max_size: 50
+    github_token: ''  # Optional GitHub API Token für höheres Rate Limit
