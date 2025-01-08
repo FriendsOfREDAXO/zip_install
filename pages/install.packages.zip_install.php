@@ -93,10 +93,10 @@ if (isset($repos) && is_array($repos)) {
                 </div>
                 <div class="zip-panel-body">
                     <div class="zip-content-wrapper">
-                        <div class="zip-repo-image">
-                            <img src="https://opengraph.githubassets.com/1/' . rex_escape($githubUser) . '/' . rex_escape($repo['name']) . '" 
+                       <div class="zip-repo-image">
+                            <img src="' . ($repo['social_preview'] ?? '../assets/addons/zip_install/images/repo-placeholder.svg') . '" 
                                  alt="' . rex_escape($repo['name']) . '"
-                                 onerror="this.onerror=null; this.src=\'../assets/addons/zip_install/images/repo-placeholder.svg\';">
+                                 onerror="this.src=\'../assets/addons/zip_install/images/repo-placeholder.svg\';">
                         </div>
                         <div class="zip-description">' . rex_escape($repo['description']) . '</div>
                     </div>
