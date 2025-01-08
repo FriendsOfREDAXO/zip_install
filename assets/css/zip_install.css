@@ -35,11 +35,12 @@
     --zip-card-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-/* Repo Liste */
+/* Layout */
 #zip_install_repos {
     margin-top: 20px;
 }
 
+/* Repository Cards */
 .zip-panel {
     background: var(--zip-bg-color);
     border: 1px solid var(--zip-border-color);
@@ -57,6 +58,12 @@
     padding: 12px 15px;
     border-bottom: 1px solid var(--zip-border-color);
     background: var(--zip-bg-color);
+}
+
+.zip-panel-header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .zip-panel-title {
@@ -82,12 +89,12 @@
 }
 
 .zip-description {
-    margin-bottom: 15px;
     color: var(--zip-text-light);
+    margin: 0;
     min-height: 40px;
 }
 
-/* Form Elemente */
+/* Form Elements */
 .form-group label {
     color: var(--zip-text-color);
     font-weight: 600;
@@ -97,21 +104,38 @@
     color: var(--zip-text-light);
 }
 
-/* Pagination */
-.zip-pagination {
-    margin: 20px 0;
-    display: flex;
-    justify-content: space-between;
-}
-
-.zip-pagination .btn {
-    background: var(--zip-bg-color);
-    border-color: var(--zip-border-color);
+/* Search Input and Datalist */
+input[list="authors"] {
+    background-color: var(--zip-bg-color);
+    border: 1px solid var(--zip-border-color);
     color: var(--zip-text-color);
 }
 
-.zip-pagination .btn:hover {
-    background: var(--zip-hover-bg);
+input[list="authors"]:focus {
+    border-color: var(--zip-text-light);
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+
+/* Download Button */
+.zip-download-form {
+    margin: 0;
+    padding: 0;
+}
+
+.zip-download-form .btn {
+    padding: 4px 8px;
+    font-size: 12px;
+}
+
+/* Input Group Enhancements */
+.input-group-lg > .input-group-addon {
+    font-size: 18px;
+    padding: 10px 16px;
+}
+
+/* Spacing Utilities */
+.mb-4 {
+    margin-bottom: 1.5rem;
 }
 
 /* Mobile Anpassungen */
@@ -121,12 +145,32 @@
         margin-bottom: 5px;
     }
     
-    .zip-pagination {
+    .zip-panel-header-content {
         flex-direction: column;
-        gap: 10px;
+        align-items: flex-start;
     }
     
-    .zip-pagination .btn {
+    .zip-download-form {
+        margin-top: 10px;
         width: 100%;
+    }
+    
+    .zip-download-form .btn {
+        width: 100%;
+    }
+    
+    .input-group-lg {
+        margin-bottom: 10px;
+    }
+    
+    .input-group-btn {
+        display: block;
+        width: 100%;
+    }
+    
+    .input-group-btn .btn {
+        width: 100%;
+        margin-top: 10px;
+        border-radius: 4px;
     }
 }

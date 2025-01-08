@@ -12,7 +12,10 @@ zip_install_file_upload = ZIP-Datei hochladen
 zip_install_url = URL zu ZIP-Datei oder GitHub Repository
 zip_install_github_user = GitHub Benutzer/Organisation
 zip_install_github_search = Suchen
+zip_install_github_search_placeholder = z.B. FriendsOfREDAXO
 zip_install_github_info = Nach Eingabe des GitHub Benutzernamens oder der Organisation werden die verfügbaren Repositories angezeigt.
+zip_install_install = Installieren
+zip_install_download = ZIP herunterladen
 
 zip_install_choose_file = ZIP-Datei auswählen
 zip_install_upload_file = Datei hochladen
@@ -24,13 +27,22 @@ zip_install_invalid_file = Die hochgeladene Datei ist keine gültige ZIP-Datei.
 zip_install_invalid_url = Die eingegebene URL scheint nicht auf eine ZIP-Datei oder ein GitHub Repository zu verweisen.
 zip_install_invalid_github = Der eingegebene GitHub Benutzer/Organisation konnte nicht gefunden werden.
 zip_install_missing_addon = Das Plugin konnte nicht installiert werden, da das zugehörige AddOn fehlt!
+zip_install_extension_error = Die hochgeladene Datei hat keine gültige ZIP-Endung.
+zip_install_mime_error = Die hochgeladene Datei ist keine gültige ZIP-Datei.
+zip_install_url_file_not_loaded = Die ZIP-Datei konnte nicht von der URL geladen werden.
 
 zip_install_size_error = Die Datei überschreitet die maximale Upload-Größe von {0} MB.
 
 zip_install_install_succeed = Das AddOn wurde erfolgreich entpackt. <a href="index.php?page=packages">Zu den AddOns</a>
 zip_install_plugin_install_succeed = Das Plugin wurde erfolgreich entpackt. <a href="index.php?page=packages">Zu den AddOns</a>
+zip_install_plugin_parent_missing = Das Plugin konnte nicht installiert werden, da das zugehörige AddOn fehlt!
 
 zip_install_security_warning = Bitte beachten: Installieren Sie nur AddOns aus vertrauenswürdigen Quellen!
 
+zip_install_settings_github_token = GitHub Token
+zip_install_settings_github_token_info = Optional. Ein GitHub Token erhöht das stündliche API-Limit von 60 auf 5000 Anfragen.
+zip_install_settings_upload_max_size = Maximale Upload-Größe (MB)
+zip_install_settings_upload_max_size_info = Maximale Größe von ZIP-Dateien, die hochgeladen werden können. Standard: 50 MB.
+
 #permissions
-perm_general_zip_install[] = Rechte für ZIP Upload/GitHub Installation
+perm_general_zip_install[] = Berechtigungen für ZIP Upload/GitHub Installation

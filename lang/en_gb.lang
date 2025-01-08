@@ -1,3 +1,6 @@
+zip_install_previous = Previous
+zip_install_next = Next
+
 zip_install = Zip Install
 zip_install_title = ZIP Upload / GitHub
 
@@ -9,9 +12,12 @@ zip_install_file_upload = Upload ZIP File
 zip_install_url = URL to ZIP File or GitHub Repository
 zip_install_github_user = GitHub User/Organization
 zip_install_github_search = Search
+zip_install_github_search_placeholder = e.g. FriendsOfREDAXO
 zip_install_github_info = After entering the GitHub username or organization, the available repositories will be displayed.
+zip_install_install = Install
+zip_install_download = Download ZIP
 
-zip_install_choose_file = Choose ZIP File
+zip_install_choose_file = Select ZIP File
 zip_install_upload_file = Upload File
 zip_install_choose_info = AddOns and plugins possible. If the folder already exists, it will be overwritten.<br>Please create a backup before uploading if necessary.<br><br><strong>Note: The folder will be automatically renamed to the package name.</strong>
 
@@ -21,19 +27,22 @@ zip_install_invalid_file = The uploaded file is not a valid ZIP file.
 zip_install_invalid_url = The entered URL does not appear to point to a ZIP file or a GitHub repository.
 zip_install_invalid_github = The entered GitHub user/organization could not be found.
 zip_install_missing_addon = The plugin could not be installed because the associated AddOn is missing!
+zip_install_extension_error = The uploaded file does not have a valid ZIP extension.
+zip_install_mime_error = The uploaded file is not a valid ZIP file.
+zip_install_url_file_not_loaded = The ZIP file could not be loaded from the URL.
 
 zip_install_size_error = The file exceeds the maximum upload size of {0} MB.
 
 zip_install_install_succeed = The AddOn was successfully extracted. <a href="index.php?page=packages">Go to AddOns</a>
-zip_install_install_failed = The AddOn could not be installed.
-
-zip_install_settings_saved = The settings have been saved.
-zip_install_settings_error = The settings could not be saved.
+zip_install_plugin_install_succeed = The plugin was successfully extracted. <a href="index.php?page=packages">Go to AddOns</a>
+zip_install_plugin_parent_missing = The plugin could not be installed because the associated AddOn is missing!
 
 zip_install_security_warning = Please note: Only install AddOns from trusted sources!
 
-zip_install_github_token = GitHub Token
-zip_install_github_token_info = Optional. A GitHub token increases the hourly API limit from 60 to 5000 requests.
+zip_install_settings_github_token = GitHub Token
+zip_install_settings_github_token_info = Optional. A GitHub token increases the hourly API limit from 60 to 5000 requests.
+zip_install_settings_upload_max_size = Maximum Upload Size (MB)
+zip_install_settings_upload_max_size_info = Maximum size of ZIP files that can be uploaded. Default: 50 MB.
 
 #permissions
 perm_general_zip_install[] = Permissions for ZIP Upload/GitHub Installation
