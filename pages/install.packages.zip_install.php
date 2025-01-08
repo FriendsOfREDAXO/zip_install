@@ -8,7 +8,7 @@ $installer = new ZipInstall();
 $commonAuthors = [
     'FriendsOfREDAXO',
     'yakamara',
-    'tbaddade',
+    'tbaddade'
 ];
 
 // Handle form submissions
