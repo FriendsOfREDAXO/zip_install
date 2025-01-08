@@ -13,6 +13,7 @@ use rex_request;
 use rex_response;
 use rex_url;
 use rex_view;
+use rex_logger;
 use ZipArchive;
 
 class ZipInstall
@@ -284,8 +285,7 @@ class ZipInstall
  */
 public function getGitHubRepos(string $username): array
 {
-    $username = trim($username, '@/ '); // Remove @ and slashes if present
-    $url = 'https://api.github.com/users/' . urlencode($username) . '/repos?per_page=100';
+    $username = trim($username, '@/ ');
     $allRepos = [];
     $page = 1;
     $perPage = 100;
@@ -294,7 +294,7 @@ public function getGitHubRepos(string $username): array
         'http' => [
             'method' => 'GET',
             'header' => [
-                'User-Agent: REDAXOZipInstall',
+                'User-Agent: REDAXOZipInstall/2.0',
                 'Accept: application/vnd.github.v3+json'
             ]
         ]
@@ -303,43 +303,54 @@ public function getGitHubRepos(string $username): array
     $context = stream_context_create($options);
     
     while (count($allRepos) < 200) {
-        $url = 'https://api.github.com/users/' . urlencode($username) . '/repos?per_page=' . $perPage . '&page=' . $page;
+        $url = sprintf(
+            'https://api.github.com/users/%s/repos?per_page=%d&page=%d', 
+            urlencode($username), 
+            $perPage, 
+            $page
+        );
         
-        /** @var string|false $response */
-        $response = @file_get_contents($url, false, $context);
-
-        if ($response === false) {
-            break;
-        }
-
-        /** @var array|null $repos */
-        $repos = json_decode($response, true);
-        
-        if (!is_array($repos) || empty($repos)) {
-            break;
-        }
-
-        foreach ($repos as $repo) {
-            if (count($allRepos) >= 200) {
-                break 2;
+        try {
+            $response = @file_get_contents($url, false, $context);
+            if ($response === false) {
+                rex_logger::logError(E_WARNING, 'Failed to fetch GitHub repos from: ' . $url, __FILE__, __LINE__);
+                break;
             }
-            
-            if (str_starts_with($repo['name'], '.')) {
-                continue;
+
+            $repos = json_decode($response, true);
+            if (!is_array($repos) || empty($repos)) {
+                break;
             }
-            
-            if (!$repo['fork'] && !$repo['archived'] && !$repo['disabled']) {
-                // Get repository details including social preview image
-                $repoDetailUrl = 'https://api.github.com/repos/' . urlencode($username) . '/' . urlencode($repo['name']);
-                /** @var string|false $detailResponse */
-                $detailResponse = @file_get_contents($repoDetailUrl, false, $context);
+
+            foreach ($repos as $repo) {
+                if (count($allRepos) >= 200) {
+                    break 2;
+                }
                 
+                if (str_starts_with($repo['name'], '.') || $repo['fork'] || $repo['archived'] || $repo['disabled']) {
+                    continue;
+                }
+
+                // Hole die Repository-Details für das Social Image
+                $repoDetailUrl = sprintf(
+                    'https://api.github.com/repos/%s/%s', 
+                    urlencode($username), 
+                    urlencode($repo['name'])
+                );
+                
+                $detailResponse = @file_get_contents($repoDetailUrl, false, $context);
                 $socialPreviewUrl = null;
+                
                 if ($detailResponse !== false) {
-                    /** @var array|null $repoDetails */
                     $repoDetails = json_decode($detailResponse, true);
-                    if (isset($repoDetails['social_preview'])) {
-                        $socialPreviewUrl = $repoDetails['social_preview'];
+                    if (isset($repoDetails['social_media_preview']) && !empty($repoDetails['social_media_preview'])) {
+                        $socialPreviewUrl = str_replace('opengraph', 'repository-images', $repoDetails['social_media_preview']);
+                    } else {
+                        // Versuche direkt die repository-images URL
+                        $socialPreviewUrl = sprintf(
+                            'https://repository-images.githubusercontent.com/%s/social',
+                            $repo['id']
+                        );
                     }
                 }
                 
@@ -358,6 +369,10 @@ public function getGitHubRepos(string $username): array
                     'homepage' => $repo['homepage'] ?? null
                 ];
             }
+
+        } catch (Exception $e) {
+            rex_logger::logException($e);
+            break;
         }
 
         $page++;
