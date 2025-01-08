@@ -276,87 +276,95 @@ class ZipInstall
         return rex_view::error(rex_i18n::msg('zip_install_invalid_addon'));
     }
 
-    /**
-     * Get GitHub repositories for user/organization
-     *
-     * @param string $username The GitHub username or organization name.
-     * @return array<int, array{name: string, description: ?string, url: string, download_url: string, default_branch: string}> Returns an array of GitHub repositories.
-     */
-    public function getGitHubRepos(string $username): array
-    {
-        $username = trim($username, '@/ '); // Remove @ and slashes if present
-        $url = 'https://api.github.com/users/' . urlencode($username) . '/repos?per_page=100'; // Increased per_page and added for limit
-        $allRepos = [];
-        $page = 1;
-        $perPage = 100; // You can fetch max 100 per page
+ /**
+ * Get GitHub repositories for user/organization
+ *
+ * @param string $username The GitHub username or organization name.
+ * @return array Returns an array of GitHub repositories.
+ */
+public function getGitHubRepos(string $username): array
+{
+    $username = trim($username, '@/ '); // Remove @ and slashes if present
+    $url = 'https://api.github.com/users/' . urlencode($username) . '/repos?per_page=100';
+    $allRepos = [];
+    $page = 1;
+    $perPage = 100;
+    
+    $options = [
+        'http' => [
+            'method' => 'GET',
+            'header' => [
+                'User-Agent: REDAXOZipInstall',
+                'Accept: application/vnd.github.v3+json'
+            ]
+        ]
+    ];
+
+    $context = stream_context_create($options);
+    
+    while (count($allRepos) < 200) {
+        $url = 'https://api.github.com/users/' . urlencode($username) . '/repos?per_page=' . $perPage . '&page=' . $page;
         
-        while (count($allRepos) < 200) { // Limit total repos to 200
-        
-            $url = 'https://api.github.com/users/' . urlencode($username) . '/repos?per_page=' . $perPage . '&page=' . $page;
-           
-            $options = [
-                'http' => [
-                    'method' => 'GET',
-                    'header' => [
-                        'User-Agent: REDAXOZipInstall',
-                        'Accept: application/vnd.github.v3+json'
-                    ]
-                ]
-            ];
+        /** @var string|false $response */
+        $response = @file_get_contents($url, false, $context);
 
-            $context = stream_context_create($options);
-            /** @var string|false $response */
-            $response = @file_get_contents($url, false, $context);
-
-
-             if ($response === false) {
-                break; // if API call fails, stop pagination
-                
-            }
-
-             /** @var array|null $repos */
-             $repos = json_decode($response, true);
-             
-            if (!is_array($repos)) {
-                break; // if response is not array, stop pagination
-            }
-
-            if (empty($repos)) {
-                break; // No more repos, stop pagination
-            }
-            
-             
-           // Filter and format repos
-            foreach ($repos as $repo) {
-                 if (count($allRepos) >= 200){
-                    break 2; // Exit both foreach and while loop
-                }
-                
-                // Check if the repo name starts with a dot
-                 if (str_starts_with($repo['name'], '.')) {
-                    continue; // Skip this repository
-                }
-                
-                 if (!$repo['fork'] && !$repo['archived'] && !$repo['disabled']) {
-                      $downloadUrl = $repo['default_branch'] === 'main'
-                         ? $repo['html_url'] . '/archive/refs/heads/main.zip'
-                        : $repo['html_url'] . '/archive/refs/heads/master.zip';
-                        
-                    $allRepos[] = [
-                        'name' => $repo['name'],
-                        'description' => $repo['description'],
-                        'url' => $repo['html_url'],
-                        'download_url' => $downloadUrl,
-                        'default_branch' => $repo['default_branch']
-                    ];
-                }
-            }
-
-            $page++; // Increment page for next call
+        if ($response === false) {
+            break;
         }
 
-        return $allRepos;
+        /** @var array|null $repos */
+        $repos = json_decode($response, true);
+        
+        if (!is_array($repos) || empty($repos)) {
+            break;
+        }
+
+        foreach ($repos as $repo) {
+            if (count($allRepos) >= 200) {
+                break 2;
+            }
+            
+            if (str_starts_with($repo['name'], '.')) {
+                continue;
+            }
+            
+            if (!$repo['fork'] && !$repo['archived'] && !$repo['disabled']) {
+                // Get repository details including social preview image
+                $repoDetailUrl = 'https://api.github.com/repos/' . urlencode($username) . '/' . urlencode($repo['name']);
+                /** @var string|false $detailResponse */
+                $detailResponse = @file_get_contents($repoDetailUrl, false, $context);
+                
+                $socialPreviewUrl = null;
+                if ($detailResponse !== false) {
+                    /** @var array|null $repoDetails */
+                    $repoDetails = json_decode($detailResponse, true);
+                    if (isset($repoDetails['social_preview'])) {
+                        $socialPreviewUrl = $repoDetails['social_preview'];
+                    }
+                }
+                
+                $downloadUrl = $repo['default_branch'] === 'main'
+                    ? $repo['html_url'] . '/archive/refs/heads/main.zip'
+                    : $repo['html_url'] . '/archive/refs/heads/master.zip';
+                    
+                $allRepos[] = [
+                    'name' => $repo['name'],
+                    'description' => $repo['description'],
+                    'url' => $repo['html_url'],
+                    'download_url' => $downloadUrl,
+                    'default_branch' => $repo['default_branch'],
+                    'social_preview' => $socialPreviewUrl,
+                    'topics' => $repo['topics'] ?? [],
+                    'homepage' => $repo['homepage'] ?? null
+                ];
+            }
+        }
+
+        $page++;
     }
+
+    return $allRepos;
+}
 
     /**
      * Check if URL is valid and accessible
