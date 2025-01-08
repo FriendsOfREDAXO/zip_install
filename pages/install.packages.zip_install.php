@@ -9,15 +9,6 @@ $commonAuthors = [
     'FriendsOfREDAXO',
     'yakamara',
     'tbaddade',
-    'alexplusde',
-    'skerbis',
-    'redaxo',
-    'factorylabs',
-    'aeberhard',
-    'gharlan',
-    'staabm',
-    'christophboecker',
-    'danielsundermeier'
 ];
 
 // Handle form submissions
