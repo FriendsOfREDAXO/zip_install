@@ -70,7 +70,6 @@ $githubContent = '
     ' . $datalistHtml . '
 </form>';
 
-// Show repos if we have results
 if (isset($repos) && is_array($repos)) {
     $githubContent .= '<div class="row" id="zip_install_repos">';
     foreach ($repos as $repo) {
@@ -92,14 +91,7 @@ if (isset($repos) && is_array($repos)) {
                     </div>
                 </div>
                 <div class="zip-panel-body">
-                    <div class="zip-content-wrapper">
-                       <div class="zip-repo-image">
-                            <img src="' . ($repo['social_preview'] ?? '../assets/addons/zip_install/images/repo-placeholder.svg') . '" 
-                                 alt="' . rex_escape($repo['name']) . '"
-                                 onerror="this.src=\'../assets/addons/zip_install/images/repo-placeholder.svg\';">
-                        </div>
-                        <div class="zip-description">' . rex_escape($repo['description']) . '</div>
-                    </div>
+                    <div class="zip-description">' . rex_escape($repo['description']) . '</div>
                 </div>
             </div>
         </div>';
