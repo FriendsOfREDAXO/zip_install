@@ -35,11 +35,12 @@
     --zip-card-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-/* Repo Liste */
+/* Layout */
 #zip_install_repos {
     margin-top: 20px;
 }
 
+/* Repository Cards */
 .zip-panel {
     background: var(--zip-bg-color);
     border: 1px solid var(--zip-border-color);
@@ -87,47 +88,13 @@
     background: var(--zip-bg-color);
 }
 
-/* Content Wrapper für Bild und Beschreibung */
-.zip-content-wrapper {
-    display: flex;
-    gap: 15px;
-    align-items: flex-start;
-}
-
-.zip-repo-image {
-    flex: 0 0 80px;
-    height: 80px;
-    overflow: hidden;
-    border-radius: 4px;
-    background-color: var(--zip-border-color);
-}
-
-.zip-repo-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 4px;
-}
-
 .zip-description {
-    flex: 1;
     color: var(--zip-text-light);
+    margin: 0;
     min-height: 40px;
-    margin: 0;
 }
 
-/* Download Form */
-.zip-download-form {
-    margin: 0;
-    padding: 0;
-}
-
-.zip-download-form .btn {
-    padding: 4px 8px;
-    font-size: 12px;
-}
-
-/* Form Elemente */
+/* Form Elements */
 .form-group label {
     color: var(--zip-text-color);
     font-weight: 600;
@@ -137,7 +104,7 @@
     color: var(--zip-text-light);
 }
 
-/* Datalist Styling */
+/* Search Input and Datalist */
 input[list="authors"] {
     background-color: var(--zip-bg-color);
     border: 1px solid var(--zip-border-color);
@@ -147,6 +114,17 @@ input[list="authors"] {
 input[list="authors"]:focus {
     border-color: var(--zip-text-light);
     box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+
+/* Download Button */
+.zip-download-form {
+    margin: 0;
+    padding: 0;
+}
+
+.zip-download-form .btn {
+    padding: 4px 8px;
+    font-size: 12px;
 }
 
 /* Input Group Enhancements */
@@ -181,17 +159,18 @@ input[list="authors"]:focus {
         width: 100%;
     }
     
-    .zip-content-wrapper {
-        flex-direction: column;
-    }
-    
-    .zip-repo-image {
-        width: 100%;
-        height: 120px;
+    .input-group-lg {
         margin-bottom: 10px;
     }
     
-    .zip-description {
+    .input-group-btn {
+        display: block;
         width: 100%;
+    }
+    
+    .input-group-btn .btn {
+        width: 100%;
+        margin-top: 10px;
+        border-radius: 4px;
     }
 }
