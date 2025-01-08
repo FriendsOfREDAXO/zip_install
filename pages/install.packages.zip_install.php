@@ -52,6 +52,9 @@ $content = '<div class="row">';
 $content .= '<div class="col-sm-8">';
 
 // GitHub section
+// Get the current search term
+$currentSearch = rex_post('github_user', 'string', '');
+
 $githubContent = '
 <form method="post" class="mb-4">
     ' . $csrfField . '
@@ -59,7 +62,7 @@ $githubContent = '
         <span class="input-group-addon"><i class="fa fa-github"></i></span>
         <input type="text" class="form-control" id="github_user" name="github_user" 
                placeholder="z.B. FriendsOfREDAXO" list="authors" 
-               value="">
+               value="' . rex_escape($currentSearch) . '">
         <span class="input-group-btn">
             <button class="btn btn-primary" type="submit">' . rex_i18n::msg('zip_install_github_search') . '</button>
         </span>
