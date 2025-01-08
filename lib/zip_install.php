@@ -277,7 +277,7 @@ class ZipInstall
         return rex_view::error(rex_i18n::msg('zip_install_invalid_addon'));
     }
 
- /**
+/**
  * Get GitHub repositories for user/organization
  *
  * @param string $username The GitHub username or organization name.
@@ -330,29 +330,6 @@ public function getGitHubRepos(string $username): array
                 if (str_starts_with($repo['name'], '.') || $repo['fork'] || $repo['archived'] || $repo['disabled']) {
                     continue;
                 }
-
-                // Hole die Repository-Details für das Social Image
-                $repoDetailUrl = sprintf(
-                    'https://api.github.com/repos/%s/%s', 
-                    urlencode($username), 
-                    urlencode($repo['name'])
-                );
-                
-                $detailResponse = @file_get_contents($repoDetailUrl, false, $context);
-                $socialPreviewUrl = null;
-                
-                if ($detailResponse !== false) {
-                    $repoDetails = json_decode($detailResponse, true);
-                    if (isset($repoDetails['social_media_preview']) && !empty($repoDetails['social_media_preview'])) {
-                        $socialPreviewUrl = str_replace('opengraph', 'repository-images', $repoDetails['social_media_preview']);
-                    } else {
-                        // Versuche direkt die repository-images URL
-                        $socialPreviewUrl = sprintf(
-                            'https://repository-images.githubusercontent.com/%s/social',
-                            $repo['id']
-                        );
-                    }
-                }
                 
                 $downloadUrl = $repo['default_branch'] === 'main'
                     ? $repo['html_url'] . '/archive/refs/heads/main.zip'
@@ -364,7 +341,6 @@ public function getGitHubRepos(string $username): array
                     'url' => $repo['html_url'],
                     'download_url' => $downloadUrl,
                     'default_branch' => $repo['default_branch'],
-                    'social_preview' => $socialPreviewUrl,
                     'topics' => $repo['topics'] ?? [],
                     'homepage' => $repo['homepage'] ?? null
                 ];
