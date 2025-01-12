@@ -8,7 +8,13 @@ $installer = new ZipInstall();
 $commonAuthors = [
     'FriendsOfREDAXO',
     'yakamara',
-    'tbaddade'
+    'alexplusde',
+    'AndiLeni',
+    'danspringer',
+    'iceman-fx',
+    'KLXM',
+    'tbaddade',
+    'TobiasKrais'
 ];
 
 // Handle form submissions
