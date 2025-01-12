@@ -51,8 +51,10 @@ Plugins werden automatisch in das entsprechende Verzeichnis des zugehörigen Add
 
 ## GitHub API-Token setzen
 
-Das AddOn liefert keinen Token für die GitHub-API mit. Daher sind die Abfragen begrenzt. 
-Der Token kann z.B. in der install.php des project-AddOns oder einem eigenen wie folgt updatesicher gesetzt werden: 
+Das Add-on liefert keinen Token für die GitHub-API mit. Ohne Token sind die API-Abfragen auf 60 pro Stunde begrenzt.
+Ein persönlicher Zugriffstoken kann unter GitHub > Settings > Developer settings > Personal access tokens erstellt werden.
+Der Token benötigt mindestens 'public_repo' Berechtigung für öffentliche Repositories.
+Der Token kann z.B. in der install.php des project-Add-ons oder einem eigenen wie folgt updatesicher gesetzt werden:
 
 ```
 $addon = rex_addon::get('zip_install');
