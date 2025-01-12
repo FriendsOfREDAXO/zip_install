@@ -11,6 +11,8 @@ $commonAuthors = [
     'alexplusde',
     'AndiLeni',
     'danspringer',
+    'dtop',
+    'eaCe',
     'iceman-fx',
     'KLXM',
     'tbaddade',
