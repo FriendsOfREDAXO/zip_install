@@ -49,6 +49,16 @@ Plugins werden automatisch in das entsprechende Verzeichnis des zugehörigen Add
 *   Die `update.php` des AddOns wird nicht ausgeführt.
 *   Der Upload ist auf 50 MB begrenzt.
 
+## GitHub API-Token setzen
+
+Das AddOn liefert keinen Token für die GitHub-API mit. Daher sind die Abfragen begrenzt. 
+Der Token kann z.B. in der install.php des project-AddOns oder einem eigenen wie folgt updatesicher gesetzt werden: 
+
+```
+$addon = rex_addon::get('zip_install');
+$addon->setConfig('github_token', 'GitHubToken');
+```
+
 ## Voraussetzungen
 
 *   REDAXO >= 5.18
