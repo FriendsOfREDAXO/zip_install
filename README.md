@@ -6,7 +6,7 @@ Dieses AddOn ermöglicht die einfache Installation von AddOns oder Plugins durch
 
 **Will man ein vorhandenes AddOn ersetzen, sollte dieses für eine saubere Installation vorher deinstalliert werden, sonst bleiben evtl. alte Dateien erhalten**
 
-![Screenshot](https://raw.githubusercontent.com/FriendsOfREDAXO/zip_install/assets/zip2.png)
+![Screenshot](https://raw.githubusercontent.com/FriendsOfREDAXO/zip_install/assets/screenshot.png)
 
 ## Funktionen
 
