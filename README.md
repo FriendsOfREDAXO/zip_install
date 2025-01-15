@@ -4,6 +4,8 @@ Dieses AddOn ermöglicht die einfache Installation von AddOns oder Plugins durch
 
 **WICHTIGER HINWEIS: Dieses AddOn ist ausschließlich für erfahrene Systemadministrator:innen bestimmt. Die unsachgemäße Anwendung kann zu unerwartetem Verhalten oder Schäden führen.**
 
+**Will man ein vorhandenes AddOn ersetzen, sollte dieses für eine saubere Installation vorher deinstalliert werden, sonst bleiben evtl. alte Dateien erhalten**
+
 ![Screenshot](https://raw.githubusercontent.com/FriendsOfREDAXO/zip_install/assets/zip2.png)
 
 ## Funktionen
