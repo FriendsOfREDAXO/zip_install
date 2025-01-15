@@ -74,7 +74,7 @@ if (isset($repos) && is_array($repos)) {
     $githubContent .= '<div class="row" id="zip_install_repos">';
     foreach ($repos as $repo) {
         $githubContent .= '
-        <div class="col-sm-6">
+        <div class="col-sm-12">
             <div class="zip-panel">
                 <div class="zip-panel-header">
                     <div class="zip-panel-header-content">
