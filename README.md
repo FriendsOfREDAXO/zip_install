@@ -2,6 +2,8 @@
 
 Dieses AddOn ermöglicht die einfache Installation von AddOns oder Plugins durch Hochladen von ZIP-Dateien, Installation über eine URL oder direkt von GitHub.
 
+![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/FriendsOfREDAXO/zip_install?labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit%20Reviews)
+
 **WICHTIGER HINWEIS: Dieses AddOn ist ausschließlich für erfahrene Systemadministrator:innen bestimmt. Die unsachgemäße Anwendung kann zu unerwartetem Verhalten oder Schäden führen.**
 
 **Will man ein vorhandenes AddOn ersetzen, sollte dieses für eine saubere Installation vorher deinstalliert werden, sonst bleiben evtl. alte Dateien erhalten**
