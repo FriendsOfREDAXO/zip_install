@@ -172,7 +172,6 @@ class ZipInstall
         $packageFile = false;
         $extractPath = $this->tmpFolder . '/extract/'; // Define here to ensure its existence for the finally block
 
-
         try {
             $zip = new ZipArchive();
             if ($zip->open($tmpFile) !== true) {
@@ -185,6 +184,9 @@ class ZipInstall
                 /** @var array{name: string, index: int, size: int, mtime: int, crc: int, comp_size: int, comp_method: int} $stat */
                 $stat = $zip->statIndex($i);
                 $filename = $stat['name'];
+                
+                // Normalisiere Pfadtrenner für plattformübergreifende Kompatibilität
+                $filename = str_replace('\\', '/', $filename);
 
                 if ($i == 0) {
                     // First entry must be a directory
@@ -206,7 +208,7 @@ class ZipInstall
             }
 
             // Extract to temp folder
-             if (!is_dir($extractPath)) {
+            if (!is_dir($extractPath)) {
                 rex_dir::create($extractPath);
             }
             
@@ -215,10 +217,12 @@ class ZipInstall
             }
             $zip->close();
 
+            // Normalisiere den Pfad
+            $packageFilePath = $extractPath . str_replace('\\', '/', $packageFile);
 
             /** @var array{package: string, version: string} $config */
             // Read package.yml
-            $config = rex_file::getConfig($extractPath . $packageFile);
+            $config = rex_file::getConfig($packageFilePath);
             if (empty($config['package'])) {
                 throw new Exception(rex_i18n::msg('zip_install_invalid_addon'));
             }
@@ -230,10 +234,10 @@ class ZipInstall
                 // Check if parent exists
                 if (rex_dir::isWritable(rex_path::addon($pluginCheck[0]))) {
                     // Copy plugin to correct location
-                    if (!rex_dir::copy(
-                        $extractPath . $folderName,
-                        rex_path::addon($pluginCheck[0], 'plugins/' . $pluginCheck[1])
-                    )) {
+                    $sourcePath = $extractPath . rtrim($folderName, '/');
+                    $destPath = rex_path::addon($pluginCheck[0], 'plugins/' . $pluginCheck[1]);
+                    
+                    if (!rex_dir::copy($sourcePath, $destPath)) {
                         $error = true;
                     }
                 } else {
@@ -242,14 +246,17 @@ class ZipInstall
                 }
             } else {
                 // Copy addon
-                if (!rex_dir::copy($extractPath . $folderName, rex_path::addon($config['package']))) {
+                $sourcePath = $extractPath . rtrim($folderName, '/');
+                $destPath = rex_path::addon($config['package']);
+                
+                if (!rex_dir::copy($sourcePath, $destPath)) {
                     $error = true;
                 }
             }
 
         } catch (Exception $e) {
             $error = true;
-             trigger_error('Error during installation: ' . $e->getMessage(), E_USER_WARNING);
+            trigger_error('Error during installation: ' . $e->getMessage(), E_USER_WARNING);
         } finally {
             // Cleanup
             rex_dir::delete($extractPath);
@@ -277,19 +284,13 @@ class ZipInstall
         return rex_view::error(rex_i18n::msg('zip_install_invalid_addon'));
     }
 
-/**
- * Get GitHub repositories for user/organization
- *
- * @param string $username The GitHub username or organization name.
- * @return array Returns an array of GitHub repositories.
- */
-/**
- * Get GitHub repositories for user/organization
- *
- * @param string $username The GitHub username or organization name.
- * @return array Returns an array of GitHub repositories.
- */
-public function getGitHubRepos(string $username): array
+    /**
+     * Get GitHub repositories for user/organization
+     *
+     * @param string $username The GitHub username or organization name.
+     * @return array Returns an array of GitHub repositories.
+     */
+    public function getGitHubRepos(string $username): array
     {
         $username = trim($username, '@/ ');
         $allRepos = [];
@@ -392,6 +393,7 @@ public function getGitHubRepos(string $username): array
 
         return $allRepos;
     }
+    
     /**
      * Check if URL is valid and accessible
      *
@@ -405,7 +407,7 @@ public function getGitHubRepos(string $username): array
             $headers = @get_headers($url);
             return $headers && str_contains($headers[0], '200');
         } catch (Exception $e) {
-             trigger_error('Error checking URL validity: ' . $e->getMessage(), E_USER_WARNING);
+            trigger_error('Error checking URL validity: ' . $e->getMessage(), E_USER_WARNING);
             return false; // In case of an exception consider the URL invalid
         }
     }
