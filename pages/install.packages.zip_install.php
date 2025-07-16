@@ -24,9 +24,100 @@ if (rex_request_method() == 'post') {
     // CSRF protection check
     if (rex_csrf_token::factory('zip_install')->isValid()) {
         if ($zipFile = rex_files('zip_file')) {
-            echo $installer->handleFileUpload();
+            $result = $installer->handleFileUploadWithResult();
+            echo $result['message'];
+            
+            // Add direct installation link if addon was successfully installed
+            if (isset($result['success']) && $result['success'] && $result['addon_key']) {
+                // Always show installation link if addon was successfully extracted
+                if (rex_addon::exists($result['addon_key'])) {
+                    $addon = rex_addon::get($result['addon_key']);
+                    
+                    if (!$addon->isInstalled()) {
+                        // Generate the correct installation link like the install addon
+                        $installUrl = rex_url::currentBackendPage([
+                            'page' => 'packages',
+                            'package' => $result['addon_key'],
+                            'function' => 'install',
+                            'rex-api-call' => 'package',
+                            '_csrf_token' => rex_csrf_token::factory('rex_api_package')->getValue()
+                        ]);
+                        
+                        echo '<div class="alert alert-success">';
+                        echo '<h4><i class="fa fa-check-circle"></i> AddOn erfolgreich heruntergeladen</h4>';
+                        echo '<p>Das AddOn <strong>' . rex_escape($result['addon_key']) . '</strong> wurde erfolgreich entpackt und ist bereit zur Installation.</p>';
+                        echo '<p><a href="' . $installUrl . '" class="btn btn-primary btn-lg"><i class="fa fa-download"></i> AddOn jetzt installieren</a></p>';
+                        echo '</div>';
+                    } else {
+                        echo '<div class="alert alert-info"><i class="fa fa-info-circle"></i> AddOn ist bereits installiert.</div>';
+                    }
+                } else {
+                    // Even if addon doesn't exist in the system check, still try to provide a link
+                    // This can happen with GitHub repos that have different folder structures
+                    $installUrl = rex_url::currentBackendPage([
+                        'page' => 'packages',
+                        'package' => $result['addon_key'],
+                        'function' => 'install',
+                        'rex-api-call' => 'package',
+                        '_csrf_token' => rex_csrf_token::factory('rex_api_package')->getValue()
+                    ]);
+                    
+                    echo '<div class="alert alert-warning">';
+                    echo '<h4><i class="fa fa-exclamation-triangle"></i> AddOn heruntergeladen</h4>';
+                    echo '<p>Das AddOn wurde entpackt, konnte aber nicht automatisch erkannt werden.</p>';
+                    echo '<p><a href="' . $installUrl . '" class="btn btn-primary btn-lg"><i class="fa fa-download"></i> AddOn installieren (falls verfügbar)</a></p>';
+                    echo '</div>';
+                }
+            }
         } elseif ($url = rex_post('zip_url', 'string', '')) {
-            echo $installer->handleUrlInput($url);
+            $result = $installer->handleUrlInputWithResult($url);
+            echo $result['message'];
+            
+            // Add direct installation link if addon was successfully installed
+            if (isset($result['success']) && $result['success'] && $result['addon_key']) {
+                // Force addon detection refresh to ensure newly extracted addons are recognized
+                rex_package_manager::synchronizeWithFileSystem();
+                
+                // Always show installation link if addon was successfully extracted
+                if (rex_addon::exists($result['addon_key'])) {
+                    $addon = rex_addon::get($result['addon_key']);
+                    
+                    if (!$addon->isInstalled()) {
+                        // Generate the correct installation link like the install addon
+                        $installUrl = rex_url::currentBackendPage([
+                            'page' => 'packages',
+                            'package' => $result['addon_key'],
+                            'function' => 'install',
+                            'rex-api-call' => 'package',
+                            '_csrf_token' => rex_csrf_token::factory('rex_api_package')->getValue()
+                        ]);
+                        
+                        echo '<div class="alert alert-success">';
+                        echo '<h4><i class="fa fa-check-circle"></i> AddOn erfolgreich heruntergeladen</h4>';
+                        echo '<p>Das AddOn <strong>' . rex_escape($result['addon_key']) . '</strong> wurde erfolgreich entpackt und ist bereit zur Installation.</p>';
+                        echo '<p><a href="' . $installUrl . '" class="btn btn-primary btn-lg"><i class="fa fa-download"></i> AddOn jetzt installieren</a></p>';
+                        echo '</div>';
+                    } else {
+                        echo '<div class="alert alert-info"><i class="fa fa-info-circle"></i> AddOn ist bereits installiert.</div>';
+                    }
+                } else {
+                    // Even if addon doesn't exist in the system check, still try to provide a link
+                    // This can happen with GitHub repos that have different folder structures
+                    $installUrl = rex_url::currentBackendPage([
+                        'page' => 'packages',
+                        'package' => $result['addon_key'],
+                        'function' => 'install',
+                        'rex-api-call' => 'package',
+                        '_csrf_token' => rex_csrf_token::factory('rex_api_package')->getValue()
+                    ]);
+                    
+                    echo '<div class="alert alert-warning">';
+                    echo '<h4><i class="fa fa-exclamation-triangle"></i> AddOn heruntergeladen</h4>';
+                    echo '<p>Das AddOn wurde entpackt, konnte aber nicht automatisch erkannt werden.</p>';
+                    echo '<p><a href="' . $installUrl . '" class="btn btn-primary btn-lg"><i class="fa fa-download"></i> AddOn installieren (falls verfügbar)</a></p>';
+                    echo '</div>';
+                }
+            }
         } elseif ($githubUser = rex_post('github_user', 'string', '')) {
             $repos = $installer->getGitHubRepos($githubUser);
         }

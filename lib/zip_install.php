@@ -53,63 +53,8 @@ class ZipInstall
      */
     public function handleFileUpload(): string
     {
-        if (!isset($_FILES['zip_file'])) {
-            return rex_view::error(rex_i18n::msg('zip_install_upload_failed'));
-        }
-
-        /** @var array{name: string, type: string, tmp_name: string, error: int, size: int} $uploadedFile */
-        $uploadedFile = $_FILES['zip_file'];
-
-         // Validate file extension
-        $fileExtension = strtolower(pathinfo($uploadedFile['name'], PATHINFO_EXTENSION));
-         if ($fileExtension !== 'zip') {
-             return rex_view::error(rex_i18n::msg('zip_install_extension_error'));
-         }
-
-         // Check mime type (as before)
-        $allowedMimeTypes = ['application/zip', 'application/octet-stream'];
-        if (!in_array($uploadedFile['type'], $allowedMimeTypes)) {
-            
-            // Check actual mime type with fileinfo extension
-             if (function_exists('finfo_open')) {
-                 $finfo = finfo_open(FILEINFO_MIME_TYPE);
-                 $actualMimeType = finfo_file($finfo, $uploadedFile['tmp_name']);
-                 finfo_close($finfo);
-                if (!in_array($actualMimeType, $allowedMimeTypes)) {
-                    return rex_view::error(rex_i18n::msg('zip_install_mime_error'));
-                }
-             }
-             else {
-                 return rex_view::error(rex_i18n::msg('zip_install_mime_error'));
-             }
-         }
-
-        // Check filesize
-        $maxSize = $this->addon->getConfig('upload_max_size', 50) * 1024 * 1024; // Convert MB to bytes
-        if ($uploadedFile['size'] > $maxSize) {
-            return rex_view::error(rex_i18n::msg('zip_install_size_error', $this->addon->getConfig('upload_max_size', 20)));
-        }
-
-        $tmpFile = $this->tmpFolder . '/' . uniqid('upload_') . '.zip'; // Generate unique filename
-
-        try {
-
-            // Verify file content before moving
-            $zip = new ZipArchive();
-            if ($zip->open($uploadedFile['tmp_name']) !== true) {
-                throw new Exception(rex_i18n::msg('zip_install_invalid_zip'));
-            }
-            $zip->close();
-
-
-            if (!move_uploaded_file($uploadedFile['tmp_name'], $tmpFile)) {
-                 throw new Exception(rex_i18n::msg('zip_install_upload_failed'));
-            }
-        } catch (Exception $e) {
-            return rex_view::error(rex_i18n::msg('zip_install_upload_failed') . ' ' . $e->getMessage());
-        }
-
-        return $this->installZip($tmpFile);
+        $result = $this->handleFileUploadWithResult();
+        return $result['message'];
     }
 
     /**
@@ -120,49 +65,17 @@ class ZipInstall
      */
     public function handleUrlInput(string $url): string
     {
-        if (empty($url)) {
-            return rex_view::error(rex_i18n::msg('zip_install_invalid_url'));
-        }
-
-        // Remove trailing slash if exists
-        $url = rtrim($url, '/');
-
-        // Check if it's a GitHub repository URL
-        if (preg_match('/^https:\/\/github\.com\/([^\/]+)\/([^\/]+)(\/tree\/([^\/]+))?$/i', $url, $matches)) {
-            $owner = $matches[1];
-            $repo = $matches[2];
-            $branch = $matches[4] ?? null;
-
-            if ($branch) {
-                $downloadUrl = "https://github.com/$owner/$repo/archive/refs/heads/$branch.zip";
-            } else {
-                // Try main/master branch
-                $downloadUrl = "https://github.com/$owner/$repo/archive/refs/heads/main.zip";
-
-                // If main doesn't exist, try master
-                if (!$this->isValidUrl($downloadUrl)) {
-                    $downloadUrl = "https://github.com/$owner/$repo/archive/refs/heads/master.zip";
-                }
-            }
-            $url = $downloadUrl;
-        }
-
-        // Download file
-        $tmpFile = $this->tmpFolder . '/' . uniqid('download_') . '.zip'; // Generate unique filename
-        if (!$this->downloadFile($url, $tmpFile)) {
-            return rex_view::error(rex_i18n::msg('zip_install_url_file_not_loaded'));
-        }
-
-        return $this->installZip($tmpFile);
+        $result = $this->handleUrlInputWithResult($url);
+        return $result['message'];
     }
 
     /**
      * Install ZIP file
      *
      * @param string $tmpFile Path to the temporary ZIP file.
-     * @return string Returns a HTML string for a view message.
+     * @return array Returns an array with status and addon key.
      */
-    protected function installZip(string $tmpFile): string
+    protected function installZip(string $tmpFile): array
     {
         $error = false;
         $isPlugin = false;
@@ -170,6 +83,8 @@ class ZipInstall
         $folderName = '';
          /** @var string|false $packageFile */
         $packageFile = false;
+        /** @var array{package: string, version: string} $config */
+        $config = ['package' => '', 'version' => ''];
         $extractPath = $this->tmpFolder . '/extract/'; // Define here to ensure its existence for the finally block
 
         try {
@@ -265,23 +180,39 @@ class ZipInstall
 
         if (!$error) {
             if ($isPlugin) {
-                return rex_view::success(str_replace(
-                    '%%plugin%%',
-                    $config['package'],
-                    rex_i18n::rawMsg('zip_install_plugin_install_succeed')
-                ));
+                return [
+                    'success' => true,
+                    'message' => rex_view::success(str_replace(
+                        '%%plugin%%',
+                        $config['package'],
+                        rex_i18n::rawMsg('zip_install_plugin_install_succeed')
+                    )),
+                    'addon_key' => $config['package']
+                ];
             }
-            return rex_view::success(str_replace(
-                '%%addon%%',
-                $config['package'],
-                rex_i18n::rawMsg('zip_install_install_succeed')
-            ));
+            return [
+                'success' => true,
+                'message' => rex_view::success(str_replace(
+                    '%%addon%%',
+                    $config['package'],
+                    rex_i18n::rawMsg('zip_install_install_succeed')
+                )),
+                'addon_key' => $config['package']
+            ];
         }
 
         if ($parentIsMissing) {
-            return rex_view::error(rex_i18n::msg('zip_install_plugin_parent_missing'));
+            return [
+                'success' => false,
+                'message' => rex_view::error(rex_i18n::msg('zip_install_plugin_parent_missing')),
+                'addon_key' => null
+            ];
         }
-        return rex_view::error(rex_i18n::msg('zip_install_invalid_addon'));
+        return [
+            'success' => false,
+            'message' => rex_view::error(rex_i18n::msg('zip_install_invalid_addon')),
+            'addon_key' => null
+        ];
     }
 
     /**
@@ -432,5 +363,176 @@ class ZipInstall
             trigger_error('Error downloading file: ' . $e->getMessage(), E_USER_WARNING);
             return false;
         }
+    }
+
+    /**
+     * Handle file upload from form and return result with addon key
+     *
+     * @return array Returns an array with message and addon key.
+     */
+    public function handleFileUploadWithResult(): array
+    {
+        if (!isset($_FILES['zip_file'])) {
+            return [
+                'message' => rex_view::error(rex_i18n::msg('zip_install_upload_failed')),
+                'addon_key' => null
+            ];
+        }
+
+        /** @var array{name: string, type: string, tmp_name: string, error: int, size: int} $uploadedFile */
+        $uploadedFile = $_FILES['zip_file'];
+
+         // Validate file extension
+        $fileExtension = strtolower(pathinfo($uploadedFile['name'], PATHINFO_EXTENSION));
+         if ($fileExtension !== 'zip') {
+             return [
+                 'message' => rex_view::error(rex_i18n::msg('zip_install_extension_error')),
+                 'addon_key' => null
+             ];
+         }
+
+         // Check mime type (as before)
+        $allowedMimeTypes = ['application/zip', 'application/octet-stream'];
+        if (!in_array($uploadedFile['type'], $allowedMimeTypes)) {
+            
+            // Check actual mime type with fileinfo extension
+             if (function_exists('finfo_open')) {
+                 $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                 $actualMimeType = finfo_file($finfo, $uploadedFile['tmp_name']);
+                 finfo_close($finfo);
+                if (!in_array($actualMimeType, $allowedMimeTypes)) {
+                    return [
+                        'message' => rex_view::error(rex_i18n::msg('zip_install_mime_error')),
+                        'addon_key' => null
+                    ];
+                }
+             }
+             else {
+                 return [
+                     'message' => rex_view::error(rex_i18n::msg('zip_install_mime_error')),
+                     'addon_key' => null
+                 ];
+             }
+         }
+
+        // Check filesize
+        $maxSize = $this->addon->getConfig('upload_max_size', 50) * 1024 * 1024; // Convert MB to bytes
+        if ($uploadedFile['size'] > $maxSize) {
+            return [
+                'message' => rex_view::error(rex_i18n::msg('zip_install_size_error', $this->addon->getConfig('upload_max_size', 20))),
+                'addon_key' => null
+            ];
+        }
+
+        $tmpFile = $this->tmpFolder . '/' . uniqid('upload_') . '.zip'; // Generate unique filename
+
+        try {
+
+            // Verify file content before moving
+            $zip = new ZipArchive();
+            if ($zip->open($uploadedFile['tmp_name']) !== true) {
+                throw new Exception(rex_i18n::msg('zip_install_invalid_zip'));
+            }
+            $zip->close();
+
+
+            if (!move_uploaded_file($uploadedFile['tmp_name'], $tmpFile)) {
+                 throw new Exception(rex_i18n::msg('zip_install_upload_failed'));
+            }
+        } catch (Exception $e) {
+            return [
+                'message' => rex_view::error(rex_i18n::msg('zip_install_upload_failed') . ' ' . $e->getMessage()),
+                'addon_key' => null
+            ];
+        }
+
+        return $this->installZip($tmpFile);
+    }
+
+    /**
+     * Handle URL input and return result with addon key
+     *
+     * @param string $url The URL to process.
+     * @return array Returns an array with message and addon key.
+     */
+    public function handleUrlInputWithResult(string $url): array
+    {
+        if (empty($url)) {
+            return [
+                'message' => rex_view::error(rex_i18n::msg('zip_install_invalid_url')),
+                'addon_key' => null
+            ];
+        }
+
+        // Remove trailing slash if exists
+        $url = rtrim($url, '/');
+
+        // Check if it's a GitHub repository URL
+        if (preg_match('/^https:\/\/github\.com\/([^\/]+)\/([^\/]+)(\/tree\/([^\/]+))?$/i', $url, $matches)) {
+            $owner = $matches[1];
+            $repo = $matches[2];
+            $branch = $matches[4] ?? null;
+
+            if ($branch) {
+                $downloadUrl = "https://github.com/$owner/$repo/archive/refs/heads/$branch.zip";
+            } else {
+                // Try main/master branch
+                $downloadUrl = "https://github.com/$owner/$repo/archive/refs/heads/main.zip";
+
+                // If main doesn't exist, try master
+                if (!$this->isValidUrl($downloadUrl)) {
+                    $downloadUrl = "https://github.com/$owner/$repo/archive/refs/heads/master.zip";
+                }
+            }
+            $url = $downloadUrl;
+        }
+
+        // Download file
+        $tmpFile = $this->tmpFolder . '/' . uniqid('download_') . '.zip'; // Generate unique filename
+        if (!$this->downloadFile($url, $tmpFile)) {
+            return [
+                'message' => rex_view::error(rex_i18n::msg('zip_install_url_file_not_loaded')),
+                'addon_key' => null
+            ];
+        }
+
+        return $this->installZip($tmpFile);
+    }
+
+    /**
+     * Extracts the AddOn key from a ZIP file.
+     *
+     * @param string $zipFile Path to the ZIP file.
+     * @return string|null AddOn key or null if not found.
+     */
+    public function getAddonKeyFromZip(string $zipFile): ?string
+    {
+        $zip = new ZipArchive();
+        if ($zip->open($zipFile) === true) {
+            for ($i = 0; $i < $zip->numFiles; $i++) {
+                $stat = $zip->statIndex($i);
+                if (preg_match('/addons\/([^\/]+)\//', $stat['name'], $matches)) {
+                    $zip->close();
+                    return $matches[1];
+                }
+            }
+            $zip->close();
+        }
+        return null;
+    }
+
+    /**
+     * Extracts the AddOn key from a URL.
+     *
+     * @param string $url The URL of the ZIP file.
+     * @return string|null AddOn key or null if not found.
+     */
+    public function getAddonKeyFromUrl(string $url): ?string
+    {
+        $path = parse_url($url, PHP_URL_PATH);
+        if ($path && preg_match('/addons\/([^\/]+)\//', $path, $matches)) {
+            return $matches[1];
+        }
+        return null;
     }
 }
