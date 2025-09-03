@@ -49,7 +49,20 @@ if (rex_request_method() == 'post') {
                         echo '<p><a href="' . $installUrl . '" class="btn btn-primary btn-lg"><i class="fa fa-download"></i> AddOn jetzt installieren</a></p>';
                         echo '</div>';
                     } else {
-                        echo '<div class="alert alert-info"><i class="fa fa-info-circle"></i> AddOn ist bereits installiert.</div>';
+                        // Offer a direct reinstall action (same underlying action as install, different wording)
+                        $reinstallUrl = rex_url::currentBackendPage([
+                            'page' => 'packages',
+                            'package' => $result['addon_key'],
+                            'function' => 'install',
+                            'rex-api-call' => 'package',
+                            '_csrf_token' => rex_csrf_token::factory('rex_api_package')->getValue()
+                        ]);
+
+                        echo '<div class="alert alert-info">';
+                        echo '<h4><i class="fa fa-info-circle"></i> ' . rex_i18n::msg('zip_install_downloaded_installed_title') . '</h4>';
+                        echo '<p>' . rex_i18n::msg('zip_install_downloaded_installed_message', rex_escape($result['addon_key'])) . '</p>';
+                        echo '<p><a href="' . $reinstallUrl . '" class="btn btn-warning btn-lg"><i class="fa fa-refresh"></i> ' . rex_i18n::msg('package_reinstall') . '</a></p>';
+                        echo '</div>';
                     }
                 } else {
                     // Even if addon doesn't exist in the system check, still try to provide a link
@@ -98,7 +111,20 @@ if (rex_request_method() == 'post') {
                         echo '<p><a href="' . $installUrl . '" class="btn btn-primary btn-lg"><i class="fa fa-download"></i> AddOn jetzt installieren</a></p>';
                         echo '</div>';
                     } else {
-                        echo '<div class="alert alert-info"><i class="fa fa-info-circle"></i> AddOn ist bereits installiert.</div>';
+                        // Offer a direct reinstall action (same underlying action as install, different wording)
+                        $reinstallUrl = rex_url::currentBackendPage([
+                            'page' => 'packages',
+                            'package' => $result['addon_key'],
+                            'function' => 'install',
+                            'rex-api-call' => 'package',
+                            '_csrf_token' => rex_csrf_token::factory('rex_api_package')->getValue()
+                        ]);
+
+                        echo '<div class="alert alert-info">';
+                        echo '<h4><i class="fa fa-info-circle"></i> ' . rex_i18n::msg('zip_install_downloaded_installed_title') . '</h4>';
+                        echo '<p>' . rex_i18n::msg('zip_install_downloaded_installed_message', rex_escape($result['addon_key'])) . '</p>';
+                        echo '<p><a href="' . $reinstallUrl . '" class="btn btn-warning btn-lg"><i class="fa fa-refresh"></i> ' . rex_i18n::msg('package_reinstall') . '</a></p>';
+                        echo '</div>';
                     }
                 } else {
                     // Even if addon doesn't exist in the system check, still try to provide a link

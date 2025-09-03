@@ -46,3 +46,7 @@ zip_install_settings_upload_max_size_info = Maximale Größe von ZIP-Dateien, di
 
 #permissions
 perm_general_zip_install[] = Berechtigungen für ZIP Upload/GitHub Installation
+
+# Messages for download when addon already exists
+zip_install_downloaded_installed_title = AddOn bereits installiert
+zip_install_downloaded_installed_message = Das AddOn {0} ist bereits installiert. Sie können es neu installieren, falls erforderlich.
