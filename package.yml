@@ -1,5 +1,5 @@
 package: zip_install
-version: '2.2.0'
+version: '2.2.1'
 author: Friends Of REDAXO
 supportpage: github.com/FriendsOfREDAXO/zip_install
 live_mode: false

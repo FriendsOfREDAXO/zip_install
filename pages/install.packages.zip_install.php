@@ -222,25 +222,8 @@ if (isset($repos) && is_array($repos)) {
 
 $content .= $githubContent . '</div>';
 
-// Right column (4 columns) - Upload and URL forms
+// Right column (4 columns) - URL and Upload forms
 $content .= '<div class="col-sm-4">';
-
-// Upload form
-$uploadContent = '
-<form method="post" enctype="multipart/form-data">
-    ' . $csrfField . '
-    <div class="form-group">
-        <label for="zip">' . rex_i18n::msg('zip_install_choose_file') . '</label>
-        <input type="file" class="form-control" id="zip" name="zip_file" accept=".zip">
-        <p class="help-block">' . rex_i18n::rawMsg('zip_install_choose_info') . '</p>
-    </div>
-    <button type="submit" class="btn btn-primary">' . rex_i18n::msg('zip_install_upload_file') . '</button>
-</form>';
-
-$fragment = new rex_fragment();
-$fragment->setVar('title', rex_i18n::msg('zip_install_file_upload'));
-$fragment->setVar('body', $uploadContent, false);
-$content .= $fragment->parse('core/page/section.php');
 
 // URL form
 $urlContent = '
@@ -257,6 +240,23 @@ $urlContent = '
 $fragment = new rex_fragment();
 $fragment->setVar('title', 'ZIP URL');
 $fragment->setVar('body', $urlContent, false);
+$content .= $fragment->parse('core/page/section.php');
+
+// Upload form
+$uploadContent = '
+<form method="post" enctype="multipart/form-data">
+    ' . $csrfField . '
+    <div class="form-group">
+        <label for="zip">' . rex_i18n::msg('zip_install_choose_file') . '</label>
+        <input type="file" class="form-control" id="zip" name="zip_file" accept=".zip">
+        <p class="help-block">' . rex_i18n::rawMsg('zip_install_choose_info') . '</p>
+    </div>
+    <button type="submit" class="btn btn-primary">' . rex_i18n::msg('zip_install_upload_file') . '</button>
+</form>';
+
+$fragment = new rex_fragment();
+$fragment->setVar('title', rex_i18n::msg('zip_install_file_upload'));
+$fragment->setVar('body', $uploadContent, false);
 $content .= $fragment->parse('core/page/section.php');
 
 $content .= '</div>'; // End right column

@@ -475,6 +475,22 @@ class ZipInstall
 
             if ($branch) {
                 $downloadUrl = "https://github.com/$owner/$repo/archive/refs/heads/$branch.zip";
+                
+                // Check if the specified branch exists, if not fall back to default branches
+                if (!$this->isValidUrl($downloadUrl)) {
+                    // Try main branch as fallback
+                    $mainUrl = "https://github.com/$owner/$repo/archive/refs/heads/main.zip";
+                    if ($this->isValidUrl($mainUrl)) {
+                        $downloadUrl = $mainUrl;
+                    } else {
+                        // Try master branch as fallback
+                        $masterUrl = "https://github.com/$owner/$repo/archive/refs/heads/master.zip";
+                        if ($this->isValidUrl($masterUrl)) {
+                            $downloadUrl = $masterUrl;
+                        }
+                        // If neither main nor master exists, keep the original URL and let it fail with a proper error
+                    }
+                }
             } else {
                 // Try main/master branch
                 $downloadUrl = "https://github.com/$owner/$repo/archive/refs/heads/main.zip";
