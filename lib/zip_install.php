@@ -334,9 +334,27 @@ class ZipInstall
     protected function isValidUrl(string $url): bool
     {
          try {
+             // Create context to follow redirects
+             $context = stream_context_create([
+                 'http' => [
+                     'method' => 'HEAD',
+                     'follow_location' => true,
+                     'max_redirects' => 5,
+                     'timeout' => 10,
+                     'user_agent' => 'REDAXOZipInstall/2.2.1'
+                 ],
+                 'https' => [
+                     'method' => 'HEAD',
+                     'follow_location' => true,
+                     'max_redirects' => 5,
+                     'timeout' => 10,
+                     'user_agent' => 'REDAXOZipInstall/2.2.1'
+                 ]
+             ]);
+
              /** @var array<int, string>|false $headers */
-            $headers = @get_headers($url);
-            return $headers && str_contains($headers[0], '200');
+            $headers = @get_headers($url, 1, $context);
+            return $headers && (str_contains($headers[0], '200') || str_contains($headers[0], '302'));
         } catch (Exception $e) {
             trigger_error('Error checking URL validity: ' . $e->getMessage(), E_USER_WARNING);
             return false; // In case of an exception consider the URL invalid
@@ -353,8 +371,34 @@ class ZipInstall
     protected function downloadFile(string $url, string $destination): bool
     {
         try {
-             /** @var string|false $content */
-            $content = @file_get_contents($url);
+            // Create context with options to follow redirects
+            $context = stream_context_create([
+                'http' => [
+                    'method' => 'GET',
+                    'follow_location' => true,
+                    'max_redirects' => 5,
+                    'timeout' => 30,
+                    'user_agent' => 'REDAXOZipInstall/2.2.1',
+                    'header' => [
+                        'Accept: application/zip, application/octet-stream, */*',
+                        'Cache-Control: no-cache'
+                    ]
+                ],
+                'https' => [
+                    'method' => 'GET',
+                    'follow_location' => true,
+                    'max_redirects' => 5,
+                    'timeout' => 30,
+                    'user_agent' => 'REDAXOZipInstall/2.2.1',
+                    'header' => [
+                        'Accept: application/zip, application/octet-stream, */*',
+                        'Cache-Control: no-cache'
+                    ]
+                ]
+            ]);
+
+            /** @var string|false $content */
+            $content = @file_get_contents($url, false, $context);
             if ($content === false) {
                 return false;
             }
