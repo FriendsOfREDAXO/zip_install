@@ -334,27 +334,29 @@ class ZipInstall
     protected function isValidUrl(string $url): bool
     {
          try {
-             // Create context to follow redirects
-             $context = stream_context_create([
-                 'http' => [
-                     'method' => 'HEAD',
-                     'follow_location' => true,
-                     'max_redirects' => 5,
-                     'timeout' => 10,
-                     'user_agent' => 'REDAXOZipInstall/2.2.1'
-                 ],
-                 'https' => [
-                     'method' => 'HEAD',
-                     'follow_location' => true,
-                     'max_redirects' => 5,
-                     'timeout' => 10,
-                     'user_agent' => 'REDAXOZipInstall/2.2.1'
-                 ]
-             ]);
+             // Check if cURL is available
+             if (!function_exists('curl_init')) {
+                 return false;
+             }
 
-             /** @var array<int, string>|false $headers */
-            $headers = @get_headers($url, 1, $context);
-            return $headers && (str_contains($headers[0], '200') || str_contains($headers[0], '302'));
+             $ch = curl_init();
+             curl_setopt($ch, CURLOPT_URL, $url);
+             curl_setopt($ch, CURLOPT_NOBODY, true); // HEAD request
+             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+             curl_setopt($ch, CURLOPT_MAXREDIRS, 5);
+             curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+             curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+             curl_setopt($ch, CURLOPT_USERAGENT, 'REDAXOZipInstall/2.2.1');
+             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+             curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+
+             curl_exec($ch);
+             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+             $error = curl_error($ch);
+             curl_close($ch);
+
+             return empty($error) && ($httpCode === 200 || $httpCode === 302);
         } catch (Exception $e) {
             trigger_error('Error checking URL validity: ' . $e->getMessage(), E_USER_WARNING);
             return false; // In case of an exception consider the URL invalid
@@ -371,37 +373,39 @@ class ZipInstall
     protected function downloadFile(string $url, string $destination): bool
     {
         try {
-            // Create context with options to follow redirects
-            $context = stream_context_create([
-                'http' => [
-                    'method' => 'GET',
-                    'follow_location' => true,
-                    'max_redirects' => 5,
-                    'timeout' => 30,
-                    'user_agent' => 'REDAXOZipInstall/2.2.1',
-                    'header' => [
-                        'Accept: application/zip, application/octet-stream, */*',
-                        'Cache-Control: no-cache'
-                    ]
-                ],
-                'https' => [
-                    'method' => 'GET',
-                    'follow_location' => true,
-                    'max_redirects' => 5,
-                    'timeout' => 30,
-                    'user_agent' => 'REDAXOZipInstall/2.2.1',
-                    'header' => [
-                        'Accept: application/zip, application/octet-stream, */*',
-                        'Cache-Control: no-cache'
-                    ]
-                ]
-            ]);
-
-            /** @var string|false $content */
-            $content = @file_get_contents($url, false, $context);
-            if ($content === false) {
+            // Check if cURL is available
+            if (!function_exists('curl_init')) {
+                trigger_error('cURL extension is required for downloading files', E_USER_WARNING);
                 return false;
             }
+
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+            curl_setopt($ch, CURLOPT_MAXREDIRS, 5);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+            curl_setopt($ch, CURLOPT_USERAGENT, 'REDAXOZipInstall/2.2.1');
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'Accept: application/zip, application/octet-stream, */*',
+                'Cache-Control: no-cache'
+            ]);
+
+            $content = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $error = curl_error($ch);
+            curl_close($ch);
+
+            if ($content === false || $httpCode !== 200 || !empty($error)) {
+                if (!empty($error)) {
+                    trigger_error('cURL error: ' . $error, E_USER_WARNING);
+                }
+                return false;
+            }
+
             return rex_file::put($destination, $content);
         } catch (Exception $e) {
             trigger_error('Error downloading file: ' . $e->getMessage(), E_USER_WARNING);
