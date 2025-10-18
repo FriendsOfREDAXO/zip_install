@@ -430,6 +430,22 @@ class ZipInstall
         /** @var array{name: string, type: string, tmp_name: string, error: int, size: int} $uploadedFile */
         $uploadedFile = $_FILES['zip_file'];
 
+        // Check for upload errors
+        if ($uploadedFile['error'] !== UPLOAD_ERR_OK) {
+            return [
+                'message' => rex_view::error(rex_i18n::msg('zip_install_upload_failed')),
+                'addon_key' => null
+            ];
+        }
+
+        // Check if tmp_name is not empty
+        if (empty($uploadedFile['tmp_name']) || !is_uploaded_file($uploadedFile['tmp_name'])) {
+            return [
+                'message' => rex_view::error(rex_i18n::msg('zip_install_upload_failed')),
+                'addon_key' => null
+            ];
+        }
+
          // Validate file extension
         $fileExtension = strtolower(pathinfo($uploadedFile['name'], PATHINFO_EXTENSION));
          if ($fileExtension !== 'zip') {
