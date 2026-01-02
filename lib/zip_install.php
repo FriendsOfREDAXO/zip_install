@@ -265,7 +265,8 @@ class ZipInstall
                 if (isset($http_response_header)) {
                     foreach ($http_response_header as $header) {
                         if (stripos($header, 'X-RateLimit-Remaining:') === 0) {
-                            $remaining = intval(trim(substr($header, 21)));
+                            // Extract value after "X-RateLimit-Remaining: " (22 chars + space = 23)
+                            $remaining = intval(trim(substr($header, 23)));
                             if ($remaining <= 5) {
                                 // Using warning level for rate limit notifications
                                 \rex_logger::factory()->log(\Psr\Log\LogLevel::WARNING, 
@@ -351,6 +352,15 @@ class ZipInstall
              curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
              curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
 
+             // Add Authorization header if token is available
+             $token = $this->addon->getConfig('github_token');
+             $host = parse_url($url, PHP_URL_HOST);
+             if ($token && $host && ($host === 'github.com' || str_ends_with($host, '.github.com'))) {
+                 curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                     'Authorization: Bearer ' . $token
+                 ]);
+             }
+
              curl_exec($ch);
              $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
              $error = curl_error($ch);
@@ -389,10 +399,20 @@ class ZipInstall
             curl_setopt($ch, CURLOPT_USERAGENT, 'REDAXOZipInstall/2.2.1');
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
             curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            
+            $headers = [
                 'Accept: application/zip, application/octet-stream, */*',
                 'Cache-Control: no-cache'
-            ]);
+            ];
+
+            // Add Authorization header if token is available
+            $token = $this->addon->getConfig('github_token');
+            $host = parse_url($url, PHP_URL_HOST);
+            if ($token && $host && ($host === 'github.com' || str_ends_with($host, '.github.com'))) {
+                $headers[] = 'Authorization: Bearer ' . $token;
+            }
+
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
             $content = curl_exec($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -613,6 +633,54 @@ class ZipInstall
         if ($path && preg_match('/addons\/([^\/]+)\//', $path, $matches)) {
             return $matches[1];
         }
+        return null;
+    }
+
+    /**
+     * Get GitHub API Rate Limit
+     *
+     * @return array|null Returns array with limit, remaining, reset or null on error
+     */
+    public function getRateLimit(): ?array
+    {
+        $token = $this->addon->getConfig('github_token');
+        
+        $headers = [
+            'User-Agent: REDAXOZipInstall/2.0',
+            'Accept: application/vnd.github.v3+json'
+        ];
+        
+        if ($token) {
+            $headers[] = 'Authorization: Bearer ' . $token;
+        }
+        
+        $options = [
+            'http' => [
+                'method' => 'GET',
+                'header' => implode("\r\n", $headers),
+                'timeout' => 5
+            ]
+        ];
+
+        $context = stream_context_create($options);
+        
+        try {
+            $response = @file_get_contents('https://api.github.com/rate_limit', false, $context);
+            
+            if ($response !== false) {
+                $data = json_decode($response, true);
+                if (isset($data['rate'])) {
+                    return [
+                        'limit' => $data['rate']['limit'],
+                        'remaining' => $data['rate']['remaining'],
+                        'reset' => $data['rate']['reset']
+                    ];
+                }
+            }
+        } catch (Exception $e) {
+            // Ignore errors
+        }
+        
         return null;
     }
 }

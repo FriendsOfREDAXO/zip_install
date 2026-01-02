@@ -28,7 +28,12 @@ Dieses AddOn ermöglicht die einfache Installation von AddOns oder Plugins durch
 
 ## Verwendung
 
-Das AddOn ist im Installer unter "ZIP Upload/GitHub" zu finden und bietet drei Möglichkeiten zur Installation:
+Das AddOn ist im Installer unter "ZIP Upload" zu finden. Es gliedert sich in zwei Bereiche:
+
+1.  **Upload**: Hier können AddOns via ZIP-Datei oder URL installiert werden. Auch die GitHub-Suche befindet sich hier.
+2.  **Einstellungen**: Hier können der GitHub-Token und die maximale Upload-Größe konfiguriert werden.
+
+Die Installation bietet drei Möglichkeiten:
 
 1.  **ZIP-Upload**: Direkter Upload einer ZIP-Datei eines AddOns/Plugins
 2.  **URL-Installation**: Eingabe eines Links zu einer ZIP-Datei oder einem GitHub-Repository
@@ -53,17 +58,18 @@ Plugins werden automatisch in das entsprechende Verzeichnis des zugehörigen Add
 *   Die `update.php` des AddOns wird nicht ausgeführt.
 *   Der Upload ist auf 50 MB begrenzt.
 
-## GitHub API-Token setzen
+## GitHub API-Token & Private Repositories
 
-Das Add-on liefert keinen Token für die GitHub-API mit. Ohne Token sind die API-Abfragen auf 60 pro Stunde begrenzt.
-Ein persönlicher Zugriffstoken kann unter GitHub > Settings > Developer settings > Personal access tokens erstellt werden.
-Der Token benötigt mindestens 'public_repo' Berechtigung für öffentliche Repositories.
-Der Token kann z.B. in der install.php des project-Add-ons oder einem eigenen wie folgt updatesicher gesetzt werden:
+Das AddOn liefert keinen Token für die GitHub-API mit. Ohne Token sind die API-Abfragen auf 60 pro Stunde begrenzt.
 
-```
-$addon = rex_addon::get('zip_install');
-$addon->setConfig('github_token', 'GitHubToken');
-```
+Ein persönlicher Zugriffstoken kann unter **GitHub > Settings > Developer settings > Personal access tokens** erstellt werden.
+Der Token kann bequem über die **Einstellungen-Seite** des AddOns eingetragen werden.
+
+**Vorteile eines Tokens:**
+*   Erhöhtes Rate-Limit (5000 Anfragen/Stunde statt 60).
+*   **Zugriff auf private Repositories**: Mit einem Token, der über den Scope `repo` verfügt, können auch private Repositories installiert werden.
+
+Für öffentliche Repositories reicht in der Regel ein Token ohne spezielle Scopes (oder der Scope `public_repo`).
 
 ## Voraussetzungen
 

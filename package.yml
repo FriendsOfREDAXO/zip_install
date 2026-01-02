@@ -1,5 +1,5 @@
 package: zip_install
-version: '2.2.4'
+version: '2.3.0'
 author: Friends Of REDAXO
 supportpage: github.com/FriendsOfREDAXO/zip_install
 live_mode: false
@@ -11,11 +11,20 @@ requires:
         extensions: [fileinfo, zip]
 
 pages:
-    install/packages/zip_install:
+    install/zip_install:
         title: translate:title
-        icon: rex-icon fa-upload
+        icon: rex-icon fa-solid fa-file-arrow-up
         perm: admin[]
         pjax: true
+        subpages:
+            upload:
+                title: translate:zip_install_file_upload
+                icon: rex-icon fa-solid fa-file-arrow-up
+                perm: admin[]
+            settings:
+                title: translate:settings
+                icon: rex-icon fa-cog
+                perm: admin[]
         
 conflicts:
     packages:

@@ -41,8 +41,11 @@ zip_install_security_warning = Bitte beachten: Installieren Sie nur AddOns aus v
 
 zip_install_settings_github_token = GitHub Token
 zip_install_settings_github_token_info = Optional. Ein GitHub Token erhöht das stündliche API-Limit von 60 auf 5000 Anfragen.
+zip_install_settings_github_token_create = GitHub Token erstellen
 zip_install_settings_upload_max_size = Maximale Upload-Größe (MB)
 zip_install_settings_upload_max_size_info = Maximale Größe von ZIP-Dateien, die hochgeladen werden können. Standard: 50 MB.
+zip_install_settings_upload_max_size_invalid = Die Upload-Größe muss zwischen 1 und 500 MB liegen.
+zip_install_settings_saved = Einstellungen wurden erfolgreich gespeichert.
 
 #permissions
 perm_general_zip_install[] = Berechtigungen für ZIP Upload/GitHub Installation
