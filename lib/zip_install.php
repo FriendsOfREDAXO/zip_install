@@ -231,6 +231,11 @@ class ZipInstall
         // Get GitHub token from config if available
         $token = $this->addon->getConfig('github_token');
         
+        // Check if this user/org is configured for private repos
+        $privateRepoOwners = $this->addon->getConfig('private_repo_owners', '');
+        $privateOwnersList = array_map('trim', explode(',', $privateRepoOwners));
+        $includePrivate = $token && in_array($username, $privateOwnersList, true);
+        
         $headers = [
             'User-Agent: REDAXOZipInstall/2.0',
             'Accept: application/vnd.github.v3+json'
@@ -250,17 +255,63 @@ class ZipInstall
 
         $context = stream_context_create($options);
         
+        // Check who the authenticated user is (if token is available)
+        $authenticatedUsername = null;
+        if ($includePrivate && $token) {
+            $userInfoResponse = @file_get_contents('https://api.github.com/user', false, $context);
+            if ($userInfoResponse !== false) {
+                $userInfo = json_decode($userInfoResponse, true);
+                if (isset($userInfo['login'])) {
+                    $authenticatedUsername = $userInfo['login'];
+                }
+            }
+        }
+        
         while (count($allRepos) < 200) {
-            $url = sprintf(
-                'https://api.github.com/users/%s/repos?per_page=%d&page=%d', 
-                urlencode($username), 
-                $perPage, 
-                $page
-            );
-            
-            try {
+            // For configured users/orgs with token, try different approaches
+            if ($includePrivate) {
+                // First, try organization endpoint - works for organizations
+                $url = sprintf(
+                    'https://api.github.com/orgs/%s/repos?per_page=%d&page=%d&type=all', 
+                    urlencode($username), 
+                    $perPage, 
+                    $page
+                );
+                
                 $response = @file_get_contents($url, false, $context);
                 
+                // If /orgs/ fails, check if searched user is the authenticated user
+                if ($response === false && $authenticatedUsername && strcasecmp($authenticatedUsername, $username) === 0) {
+                    // Use /user/repos for the authenticated user's own repos
+                    $url = sprintf(
+                        'https://api.github.com/user/repos?per_page=%d&page=%d&type=all', 
+                        $perPage, 
+                        $page
+                    );
+                    $response = @file_get_contents($url, false, $context);
+                } elseif ($response === false) {
+                    // Fall back to public repos for other users
+                    $url = sprintf(
+                        'https://api.github.com/users/%s/repos?per_page=%d&page=%d', 
+                        urlencode($username), 
+                        $perPage, 
+                        $page
+                    );
+                    $response = @file_get_contents($url, false, $context);
+                }
+            } else {
+                // Standard public repos endpoint
+                $url = sprintf(
+                    'https://api.github.com/users/%s/repos?per_page=%d&page=%d', 
+                    urlencode($username), 
+                    $perPage, 
+                    $page
+                );
+                
+                $response = @file_get_contents($url, false, $context);
+            }
+            
+            try {
                 // Check for rate limit headers
                 if (isset($http_response_header)) {
                     foreach ($http_response_header as $header) {
@@ -310,7 +361,8 @@ class ZipInstall
                         'download_url' => $downloadUrl,
                         'default_branch' => $repo['default_branch'],
                         'topics' => $repo['topics'] ?? [],
-                        'homepage' => $repo['homepage'] ?? null
+                        'homepage' => $repo['homepage'] ?? null,
+                        'private' => $repo['private'] ?? false
                     ];
                 }
 
@@ -322,6 +374,11 @@ class ZipInstall
 
             $page++;
         }
+        
+        // Sort repositories by name (case-insensitive)
+        usort($allRepos, function($a, $b) {
+            return strcasecmp($a['name'], $b['name']);
+        });
 
         return $allRepos;
     }

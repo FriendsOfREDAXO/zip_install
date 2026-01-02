@@ -1,5 +1,5 @@
 package: zip_install
-version: '2.3.0'
+version: '2.4.0'
 author: Friends Of REDAXO
 supportpage: github.com/FriendsOfREDAXO/zip_install
 live_mode: false
@@ -33,3 +33,4 @@ conflicts:
 default_config:
     upload_max_size: 50
     github_token: ''  # Optional GitHub API Token für höheres Rate Limit
+    private_repo_owners: ''  # Komma-getrennte Liste von GitHub Usern/Orgas für private Repos

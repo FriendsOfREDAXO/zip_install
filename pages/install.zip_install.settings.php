@@ -10,6 +10,7 @@ if (rex_post('save', 'boolean')) {
     if ($csrf->isValid()) {
         $githubToken = rex_post('github_token', 'string', '');
         $uploadMaxSize = rex_post('upload_max_size', 'int', 50);
+        $privateRepoOwners = rex_post('private_repo_owners', 'string', '');
         
         // Validate upload size
         if ($uploadMaxSize < 1 || $uploadMaxSize > 500) {
@@ -18,6 +19,7 @@ if (rex_post('save', 'boolean')) {
             // Save settings
             rex_config::set('zip_install', 'github_token', $githubToken);
             rex_config::set('zip_install', 'upload_max_size', $uploadMaxSize);
+            rex_config::set('zip_install', 'private_repo_owners', $privateRepoOwners);
             
             echo rex_view::success(rex_i18n::msg('zip_install_settings_saved'));
         }
@@ -29,6 +31,7 @@ if (rex_post('save', 'boolean')) {
 // Get current settings
 $githubToken = rex_config::get('zip_install', 'github_token', '');
 $uploadMaxSize = rex_config::get('zip_install', 'upload_max_size', 50);
+$privateRepoOwners = rex_config::get('zip_install', 'private_repo_owners', '');
 
 // Get Rate Limit Info
 $rateLimitInfo = '';
@@ -72,6 +75,13 @@ $n['label'] = '<label for="upload_max_size">' . rex_i18n::msg('zip_install_setti
 $n['field'] = '<input class="form-control" type="number" id="upload_max_size" name="upload_max_size" value="' . $uploadMaxSize . '" min="1" max="500" />';
 $n['note'] = rex_i18n::msg('zip_install_settings_upload_max_size_info');
 $formElements[] = $n;
+// Private Repo Owners field
+$n = [];
+$n['label'] = '<label for="private_repo_owners">' . rex_i18n::msg('zip_install_settings_private_repo_owners') . '</label>';
+$n['field'] = '<textarea class="form-control" id="private_repo_owners" name="private_repo_owners" rows="3" placeholder="FriendsOfREDAXO, yakamara, mein-username">' . rex_escape($privateRepoOwners) . '</textarea>';
+$n['note'] = rex_i18n::msg('zip_install_settings_private_repo_owners_info');
+$formElements[] = $n;
+
 
 $fragment = new rex_fragment();
 $fragment->setVar('elements', $formElements, false);

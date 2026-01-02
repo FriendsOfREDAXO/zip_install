@@ -39,12 +39,16 @@ zip_install_plugin_parent_missing = The plugin could not be installed because th
 
 zip_install_security_warning = Please note: Only install AddOns from trusted sources!
 
+zip_install_private = Private
+
 zip_install_settings_github_token = GitHub Token
 zip_install_settings_github_token_info = Optional. A GitHub token increases the hourly API limit from 60 to 5000 requests.
 zip_install_settings_github_token_create = Create GitHub Token
 zip_install_settings_upload_max_size = Maximum Upload Size (MB)
 zip_install_settings_upload_max_size_info = Maximum size of ZIP files that can be uploaded. Default: 50 MB.
 zip_install_settings_upload_max_size_invalid = The upload size must be between 1 and 500 MB.
+zip_install_settings_private_repo_owners = Private Repository Owners
+zip_install_settings_private_repo_owners_info = Comma-separated list of GitHub usernames or organizations for which private repositories should also be displayed (requires GitHub token).
 zip_install_settings_saved = Settings have been saved successfully.
 
 #permissions

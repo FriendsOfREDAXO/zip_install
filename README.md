@@ -18,6 +18,8 @@ Dieses AddOn ermöglicht die einfache Installation von AddOns oder Plugins durch
     *   Installation direkt von GitHub-Repositories
     *   Repository-Suche nach Benutzer/Organisation
     *   Anzeige von Beschreibungen und Details der Repositories
+    *   **Unterstützung für private Repositories** bei konfigurierten Usern/Organisationen
+    *   Alphabetische Sortierung der Repository-Liste
 
 ## Installation
 
@@ -66,10 +68,23 @@ Ein persönlicher Zugriffstoken kann unter **GitHub > Settings > Developer setti
 Der Token kann bequem über die **Einstellungen-Seite** des AddOns eingetragen werden.
 
 **Vorteile eines Tokens:**
-*   Erhöhtes Rate-Limit (5000 Anfragen/Stunde statt 60).
-*   **Zugriff auf private Repositories**: Mit einem Token, der über den Scope `repo` verfügt, können auch private Repositories installiert werden.
+*   Erhöhtes Rate-Limit (5000 Anfragen/Stunde statt 60)
+*   **Zugriff auf private Repositories**: Mit einem Token, der über den Scope `repo` verfügt, können auch private Repositories installiert werden
 
 Für öffentliche Repositories reicht in der Regel ein Token ohne spezielle Scopes (oder der Scope `public_repo`).
+
+### Private Repositories konfigurieren
+
+Um private Repositories in der Suche anzuzeigen, müssen diese in den **Einstellungen** unter "Private Repository Besitzer" eingetragen werden:
+
+1. Trage deinen GitHub-Token in den Einstellungen ein (benötigt den Scope `repo`)
+2. Trage die gewünschten GitHub-Benutzernamen oder Organisationen komma-getrennt ein, z.B.: `KLXM, skerbis, meine-org`
+3. Bei der Suche nach diesen Usern/Orgas werden nun auch private Repositories angezeigt (mit einem "Privat"-Label gekennzeichnet)
+
+**Wichtig:** Private Repositories werden nur angezeigt, wenn:
+- Der eingetragene Token von einem User stammt, der Zugriff auf diese Repos hat
+- Bei Organisationen: Der authentifizierte User muss Member der Organisation sein
+- Bei einzelnen Usern: Der Token muss vom gesuchten User selbst stammen
 
 ## Voraussetzungen
 

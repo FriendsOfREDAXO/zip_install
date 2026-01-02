@@ -37,7 +37,7 @@
 
 /* Layout */
 #zip_install_repos {
-    margin-top: 20px;
+    margin-top: 15px;
 }
 
 /* Repository Cards */
@@ -45,13 +45,14 @@
     background: var(--zip-bg-color);
     border: 1px solid var(--zip-border-color);
     box-shadow: var(--zip-card-shadow);
-    border-radius: 4px;
-    margin-bottom: 20px;
-    transition: var(--zip-transition);
+    border-radius: 3px;
+    margin-bottom: 12px;
+    transition: all 0.2s ease;
+    overflow: hidden;
 }
 
 .zip-panel:hover {
-    box-shadow: 0 4px 8px var(--zip-shadow-color);
+    box-shadow: 0 4px 12px var(--zip-shadow-color);
 }
 
 .zip-panel-header {
@@ -60,38 +61,49 @@
     background: var(--zip-bg-color);
 }
 
-.zip-panel-header-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+.zip-panel-header .row {
+    margin: 0;
+}
+
+.zip-panel-header .col-sm-9,
+.zip-panel-header .col-sm-3 {
+    padding: 0 15px;
 }
 
 .zip-panel-title {
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 600;
     color: var(--zip-text-color);
     margin: 0;
+    padding: 0;
+    line-height: 32px; /* Align with button height */
 }
 
 .zip-panel-title a {
     color: var(--zip-text-color);
     text-decoration: none;
-    transition: var(--zip-transition);
+    transition: color 0.2s ease;
 }
 
 .zip-panel-title a:hover {
-    opacity: 0.8;
+    color: #3bb594;
+}
+
+.zip-panel-title .label {
+    vertical-align: middle;
+    margin-left: 8px;
 }
 
 .zip-panel-body {
-    padding: 15px;
-    background: var(--zip-bg-color);
+    padding: 12px 15px;
+    background: var(--zip-hover-bg);
 }
 
 .zip-description {
     color: var(--zip-text-light);
     margin: 0;
-    min-height: 40px;
+    line-height: 1.5;
+    font-size: 13px;
 }
 
 /* Form Elements */

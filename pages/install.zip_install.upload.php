@@ -8,7 +8,7 @@ $installer = new ZipInstall();
 $commonAuthors = [
     'FriendsOfREDAXO',
     'yakamara',
-    'alexplusde',
+    'skerbis',
     'AndiLeni',
     'danspringer',
     'dtpop',
@@ -188,17 +188,25 @@ $githubContent = '
 
 // Show repos if we have results
 if (isset($repos) && is_array($repos)) {
-    $githubContent .= '<div class="row" id="zip_install_repos">';
+    $githubContent .= '<div id="zip_install_repos">';
     foreach ($repos as $repo) {
+        // Add private label if repository is private
+        $privateLabel = '';
+        if (!empty($repo['private'])) {
+            $privateLabel = ' <span class="label label-warning"><i class="fa fa-lock"></i> ' . rex_i18n::msg('zip_install_private') . '</span>';
+        }
+        
         $githubContent .= '
-        <div class="col-sm-12">
-            <div class="zip-panel">
-                <div class="zip-panel-header">
-                    <div class="zip-panel-header-content">
+        <div class="zip-panel">
+            <div class="zip-panel-header">
+                <div class="row">
+                    <div class="col-sm-9">
                         <h4 class="zip-panel-title">
-                            <a href="' . $repo['url'] . '" target="_blank">' . rex_escape($repo['name']) . '</a>
+                            <a href="' . $repo['url'] . '" target="_blank">' . rex_escape($repo['name']) . '</a>' . $privateLabel . '
                         </h4>
-                        <form method="post" class="zip-download-form">
+                    </div>
+                    <div class="col-sm-3 text-right">
+                        <form method="post" style="display: inline-block; margin: 0;">
                             ' . $csrfField . '
                             <input type="hidden" name="zip_url" value="' . $repo['download_url'] . '">
                             <button type="submit" class="btn btn-primary btn-sm">
@@ -207,10 +215,17 @@ if (isset($repos) && is_array($repos)) {
                         </form>
                     </div>
                 </div>
-                <div class="zip-panel-body">
-                    <div class="zip-description">' . rex_escape($repo['description']) . '</div>
-                </div>
-            </div>
+            </div>';
+        
+        // Only show body if there's a description
+        if (!empty($repo['description'])) {
+            $githubContent .= '
+            <div class="zip-panel-body">
+                <div class="zip-description">' . rex_escape($repo['description']) . '</div>
+            </div>';
+        }
+        
+        $githubContent .= '
         </div>';
     }
     $githubContent .= '</div>';
