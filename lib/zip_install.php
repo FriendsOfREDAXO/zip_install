@@ -3,8 +3,12 @@
 namespace FriendsOfRedaxo\ZipInstall;
 
 use Exception;
+use FilesystemIterator;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use rex;
 use rex_addon;
+use rex_addon_interface;
 use rex_dir;
 use rex_file;
 use rex_i18n;
@@ -18,10 +22,35 @@ use ZipArchive;
 
 class ZipInstall
 {
+    /** @var list<string> */
+    private const STRIP_DIR_NAMES = [
+        '.DS_Store',
+        'Thumbs.db',
+        'desktop.ini',
+        '.svn',
+        '_svn',
+        'CVS',
+        '_darcs',
+        '.arch-params',
+        '.monotone',
+        '.bzr',
+        '.git',
+        '.hg',
+        '.github',
+        '.idea',
+        '.vscode',
+    ];
+
+    /** @var list<string> */
+    private const STRIP_FILE_NAMES = [
+        '.gitattributes',
+        '.gitignore',
+    ];
+
     /**
-     * @var rex_addon
+     * @var rex_addon_interface
      */
-    protected rex_addon $addon;
+    protected rex_addon_interface $addon;
 
     /**
      * @var string
@@ -73,17 +102,19 @@ class ZipInstall
      * Install ZIP file
      *
      * @param string $tmpFile Path to the temporary ZIP file.
-     * @return array Returns an array with status and addon key.
+    * @return array{success: bool, message: string, addon_key: string|null}
      */
     protected function installZip(string $tmpFile): array
     {
         $error = false;
         $isPlugin = false;
         $parentIsMissing = false;
+        $removedArtifacts = [];
+        $installerIgnore = [];
         $folderName = '';
          /** @var string|false $packageFile */
         $packageFile = false;
-        /** @var array{package: string, version: string} $config */
+        /** @var array{package: string, version: string, installer_ignore?: list<string>} $config */
         $config = ['package' => '', 'version' => ''];
         $extractPath = $this->tmpFolder . '/extract/'; // Define here to ensure its existence for the finally block
 
@@ -135,22 +166,49 @@ class ZipInstall
             // Normalisiere den Pfad
             $packageFilePath = $extractPath . str_replace('\\', '/', $packageFile);
 
-            /** @var array{package: string, version: string} $config */
             // Read package.yml
-            $config = rex_file::getConfig($packageFilePath);
-            if (empty($config['package'])) {
+            $rawConfig = rex_file::getConfig($packageFilePath);
+            $rawPackageKey = $rawConfig['package'] ?? null;
+            if (!is_string($rawPackageKey) || '' === $rawPackageKey) {
                 throw new Exception(rex_i18n::msg('zip_install_invalid_addon'));
             }
 
+            $rawVersion = $rawConfig['version'] ?? '';
+            $config = [
+                'package' => $rawPackageKey,
+                'version' => is_string($rawVersion) ? $rawVersion : '',
+            ];
+
+            $installerIgnoreRaw = $rawConfig['installer_ignore'] ?? [];
+            if (is_array($installerIgnoreRaw)) {
+                foreach ($installerIgnoreRaw as $pattern) {
+                    if (is_string($pattern)) {
+                        $pattern = trim($pattern);
+                        if ('' !== $pattern) {
+                            $installerIgnore[] = $pattern;
+                        }
+                    }
+                }
+            }
+
+            $sourcePath = $extractPath . rtrim($folderName, '/');
+            $removedArtifacts = $this->stripUncommonAddonFiles($sourcePath, $installerIgnore);
+
             // Handle plugins
-            $pluginCheck = explode('/', $config['package']);
+            $packageKey = $config['package'];
+            $pluginCheck = explode('/', $packageKey);
             if (count($pluginCheck) > 1) {
                 $isPlugin = true;
+                $parentAddonKey = $pluginCheck[0];
+                $pluginKey = $pluginCheck[1];
+                if ('' === $parentAddonKey || '' === $pluginKey) {
+                    throw new Exception(rex_i18n::msg('zip_install_invalid_addon'));
+                }
+
                 // Check if parent exists
-                if (rex_dir::isWritable(rex_path::addon($pluginCheck[0]))) {
+                if (rex_dir::isWritable(rex_path::addon($parentAddonKey))) {
                     // Copy plugin to correct location
-                    $sourcePath = $extractPath . rtrim($folderName, '/');
-                    $destPath = rex_path::addon($pluginCheck[0], 'plugins/' . $pluginCheck[1]);
+                    $destPath = rex_path::addon($parentAddonKey, 'plugins/' . $pluginKey);
                     
                     if (!rex_dir::copy($sourcePath, $destPath)) {
                         $error = true;
@@ -161,8 +219,7 @@ class ZipInstall
                 }
             } else {
                 // Copy addon
-                $sourcePath = $extractPath . rtrim($folderName, '/');
-                $destPath = rex_path::addon($config['package']);
+                $destPath = rex_path::addon($packageKey);
                 
                 if (!rex_dir::copy($sourcePath, $destPath)) {
                     $error = true;
@@ -180,23 +237,28 @@ class ZipInstall
 
         if (!$error) {
             if ($isPlugin) {
+                $message = rex_view::success(str_replace(
+                    '%%plugin%%',
+                    $config['package'],
+                    rex_i18n::rawMsg('zip_install_plugin_install_succeed')
+                ));
+
                 return [
                     'success' => true,
-                    'message' => rex_view::success(str_replace(
-                        '%%plugin%%',
-                        $config['package'],
-                        rex_i18n::rawMsg('zip_install_plugin_install_succeed')
-                    )),
+                    'message' => $message . $this->getCleanupReportHtml($removedArtifacts),
                     'addon_key' => $config['package']
                 ];
             }
+
+            $message = rex_view::success(str_replace(
+                '%%addon%%',
+                $config['package'],
+                rex_i18n::rawMsg('zip_install_install_succeed')
+            ));
+
             return [
                 'success' => true,
-                'message' => rex_view::success(str_replace(
-                    '%%addon%%',
-                    $config['package'],
-                    rex_i18n::rawMsg('zip_install_install_succeed')
-                )),
+                'message' => $message . $this->getCleanupReportHtml($removedArtifacts),
                 'addon_key' => $config['package']
             ];
         }
@@ -204,13 +266,13 @@ class ZipInstall
         if ($parentIsMissing) {
             return [
                 'success' => false,
-                'message' => rex_view::error(rex_i18n::msg('zip_install_plugin_parent_missing')),
+                'message' => rex_view::error(rex_i18n::msg('zip_install_plugin_parent_missing')) . $this->getCleanupReportHtml($removedArtifacts),
                 'addon_key' => null
             ];
         }
         return [
             'success' => false,
-            'message' => rex_view::error(rex_i18n::msg('zip_install_invalid_addon')),
+            'message' => rex_view::error(rex_i18n::msg('zip_install_invalid_addon')) . $this->getCleanupReportHtml($removedArtifacts),
             'addon_key' => null
         ];
     }
@@ -219,7 +281,7 @@ class ZipInstall
      * Get GitHub repositories for user/organization
      *
      * @param string $username The GitHub username or organization name.
-     * @return array Returns an array of GitHub repositories.
+    * @return list<array{name: string, description: string|null, url: string, download_url: string, default_branch: string, topics: list<string>, homepage: string|null, private: bool}>
      */
     public function getGitHubRepos(string $username): array
     {
@@ -229,12 +291,12 @@ class ZipInstall
         $perPage = 100;
         
         // Get GitHub token from config if available
-        $token = $this->addon->getConfig('github_token');
+        $token = (string) $this->addon->getConfig('github_token', '');
         
         // Check if this user/org is configured for private repos
-        $privateRepoOwners = $this->addon->getConfig('private_repo_owners', '');
+        $privateRepoOwners = (string) $this->addon->getConfig('private_repo_owners', '');
         $privateOwnersList = array_map('trim', explode(',', $privateRepoOwners));
-        $includePrivate = $token && in_array($username, $privateOwnersList, true);
+        $includePrivate = '' !== $token && in_array($username, $privateOwnersList, true);
         
         $headers = [
             'User-Agent: REDAXOZipInstall/2.0',
@@ -242,7 +304,7 @@ class ZipInstall
         ];
         
         // Add authorization header if token is available
-        if ($token) {
+        if ('' !== $token) {
             $headers[] = 'Authorization: Bearer ' . $token;
         }
         
@@ -257,7 +319,7 @@ class ZipInstall
         
         // Check who the authenticated user is (if token is available)
         $authenticatedUsername = null;
-        if ($includePrivate && $token) {
+        if ($includePrivate) {
             $userInfoResponse = @file_get_contents('https://api.github.com/user', false, $context);
             if ($userInfoResponse !== false) {
                 $userInfo = json_decode($userInfoResponse, true);
@@ -313,8 +375,7 @@ class ZipInstall
             
             try {
                 // Check for rate limit headers
-                if (isset($http_response_header)) {
-                    foreach ($http_response_header as $header) {
+                foreach ($http_response_header as $header) {
                         if (stripos($header, 'X-RateLimit-Remaining:') === 0) {
                             // Extract value after "X-RateLimit-Remaining: " (22 chars + space = 23)
                             $remaining = intval(trim(substr($header, 23)));
@@ -325,7 +386,6 @@ class ZipInstall
                                 );
                             }
                         }
-                    }
                 }
                 
                 if ($response === false) {
@@ -392,6 +452,10 @@ class ZipInstall
     protected function isValidUrl(string $url): bool
     {
          try {
+             if ('' === $url) {
+                 return false;
+             }
+
              // Check if cURL is available
              if (!function_exists('curl_init')) {
                  return false;
@@ -410,9 +474,9 @@ class ZipInstall
              curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
 
              // Add Authorization header if token is available
-             $token = $this->addon->getConfig('github_token');
+             $token = (string) $this->addon->getConfig('github_token', '');
              $host = parse_url($url, PHP_URL_HOST);
-             if ($token && $host && ($host === 'github.com' || str_ends_with($host, '.github.com'))) {
+             if ('' !== $token && is_string($host) && '' !== $host && ($host === 'github.com' || str_ends_with($host, '.github.com'))) {
                  curl_setopt($ch, CURLOPT_HTTPHEADER, [
                      'Authorization: Bearer ' . $token
                  ]);
@@ -440,6 +504,10 @@ class ZipInstall
     protected function downloadFile(string $url, string $destination): bool
     {
         try {
+            if ('' === $url) {
+                return false;
+            }
+
             // Check if cURL is available
             if (!function_exists('curl_init')) {
                 trigger_error('cURL extension is required for downloading files', E_USER_WARNING);
@@ -463,9 +531,9 @@ class ZipInstall
             ];
 
             // Add Authorization header if token is available
-            $token = $this->addon->getConfig('github_token');
+            $token = (string) $this->addon->getConfig('github_token', '');
             $host = parse_url($url, PHP_URL_HOST);
-            if ($token && $host && ($host === 'github.com' || str_ends_with($host, '.github.com'))) {
+            if ('' !== $token && is_string($host) && '' !== $host && ($host === 'github.com' || str_ends_with($host, '.github.com'))) {
                 $headers[] = 'Authorization: Bearer ' . $token;
             }
 
@@ -476,7 +544,7 @@ class ZipInstall
             $error = curl_error($ch);
             curl_close($ch);
 
-            if ($content === false || $httpCode !== 200 || !empty($error)) {
+            if (!is_string($content) || $httpCode !== 200 || '' !== $error) {
                 if (!empty($error)) {
                     trigger_error('cURL error: ' . $error, E_USER_WARNING);
                 }
@@ -493,7 +561,7 @@ class ZipInstall
     /**
      * Handle file upload from form and return result with addon key
      *
-     * @return array Returns an array with message and addon key.
+    * @return array{success?: bool, message: string, addon_key: string|null}
      */
     public function handleFileUploadWithResult(): array
     {
@@ -539,6 +607,13 @@ class ZipInstall
             // Check actual mime type with fileinfo extension
              if (function_exists('finfo_open')) {
                  $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                 if (false === $finfo) {
+                     return [
+                         'message' => rex_view::error(rex_i18n::msg('zip_install_mime_error')),
+                         'addon_key' => null
+                     ];
+                 }
+
                  $actualMimeType = finfo_file($finfo, $uploadedFile['tmp_name']);
                  finfo_close($finfo);
                 if (!in_array($actualMimeType, $allowedMimeTypes)) {
@@ -594,7 +669,7 @@ class ZipInstall
      * Handle URL input and return result with addon key
      *
      * @param string $url The URL to process.
-     * @return array Returns an array with message and addon key.
+    * @return array{success?: bool, message: string, addon_key: string|null}
      */
     public function handleUrlInputWithResult(string $url): array
     {
@@ -668,6 +743,10 @@ class ZipInstall
         if ($zip->open($zipFile) === true) {
             for ($i = 0; $i < $zip->numFiles; $i++) {
                 $stat = $zip->statIndex($i);
+                if (false === $stat) {
+                    continue;
+                }
+
                 if (preg_match('/addons\/([^\/]+)\//', $stat['name'], $matches)) {
                     $zip->close();
                     return $matches[1];
@@ -676,6 +755,166 @@ class ZipInstall
             $zip->close();
         }
         return null;
+    }
+
+    /**
+     * Entfernt Git-/CI-/Entwicklungsartefakte aus entpackten AddOn-Dateien.
+     */
+    /**
+     * @param list<string> $installerIgnore
+     * @return list<string>
+     */
+    private function stripUncommonAddonFiles(string $sourcePath, array $installerIgnore = []): array
+    {
+        if (!is_dir($sourcePath)) {
+            return [];
+        }
+
+        $removedArtifacts = [];
+        $removePaths = [];
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($sourcePath, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::SELF_FIRST
+        );
+
+        foreach ($iterator as $item) {
+            $name = $item->getFilename();
+            $fullPath = str_replace('\\', '/', $item->getPathname());
+            $relativePath = ltrim(substr($fullPath, strlen(str_replace('\\', '/', rtrim($sourcePath, '/')))), '/');
+            if ('' === $relativePath) {
+                continue;
+            }
+            $isDir = $item->isDir();
+
+            if ($isDir) {
+                if (in_array($name, self::STRIP_DIR_NAMES, true)) {
+                    $removePaths[] = $fullPath;
+                }
+            } elseif (in_array($name, self::STRIP_FILE_NAMES, true)) {
+                $removePaths[] = $fullPath;
+            }
+
+            if ($this->matchesInstallerIgnore($relativePath, $isDir, $installerIgnore)) {
+                $removePaths[] = $fullPath;
+            }
+        }
+
+        $removePaths = array_values(array_unique($removePaths));
+
+        usort($removePaths, static fn (string $a, string $b): int => strlen($b) <=> strlen($a));
+
+        foreach ($removePaths as $removePath) {
+            $relativePath = ltrim(str_replace('\\', '/', substr($removePath, strlen($sourcePath))), '/');
+            if (is_dir($removePath)) {
+                $removedArtifacts[] = $relativePath . '/';
+                rex_dir::delete($removePath);
+                continue;
+            }
+
+            $removedArtifacts[] = $relativePath;
+
+            rex_file::delete($removePath);
+        }
+
+        if ([] !== $removePaths) {
+            rex_logger::factory()->info('zip_install: removed non-addon artifacts from ZIP package', ['count' => count($removePaths)]);
+        }
+
+        return $removedArtifacts;
+    }
+
+    /**
+     * @param list<string> $installerIgnore
+     */
+    private function matchesInstallerIgnore(string $relativePath, bool $isDir, array $installerIgnore): bool
+    {
+        $relativePath = ltrim(str_replace('\\', '/', $relativePath), '/');
+        $basename = basename($relativePath);
+
+        foreach ($installerIgnore as $rawPattern) {
+            $pattern = trim(str_replace('\\', '/', $rawPattern));
+            if ('' === $pattern) {
+                continue;
+            }
+
+            if (str_starts_with($pattern, './')) {
+                $pattern = substr($pattern, 2);
+            }
+
+            $isRecursiveDirPattern = str_ends_with($pattern, '/**');
+            $hasSlash = str_contains($pattern, '/');
+            $hasGlob = (bool) preg_match('/[*?\[\]{}]/', $pattern);
+
+            if (!$hasSlash && !$hasGlob) {
+                $segments = explode('/', $relativePath);
+                if ($basename === $pattern || in_array($pattern, $segments, true)) {
+                    if ('package.yml' === $basename) {
+                        continue;
+                    }
+
+                    return true;
+                }
+
+                continue;
+            }
+
+            if ($isRecursiveDirPattern) {
+                $prefix = rtrim(substr($pattern, 0, -3), '/');
+                if ('' !== $prefix && ($relativePath === $prefix || str_starts_with($relativePath, $prefix . '/'))) {
+                    if ('package.yml' === $basename) {
+                        continue;
+                    }
+
+                    return true;
+                }
+            }
+
+            if (fnmatch($pattern, $relativePath)) {
+                if ('package.yml' === $basename) {
+                    continue;
+                }
+
+                return true;
+            }
+
+            if ($isDir && fnmatch(rtrim($pattern, '/') . '/*', $relativePath)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Erstellt eine Info-Ausgabe mit den beim Entpacken entfernten Artefakten.
+     *
+     * @param list<string> $removedArtifacts
+     */
+    private function getCleanupReportHtml(array $removedArtifacts): string
+    {
+        $title = rex_i18n::msg('zip_install_cleanup_report_title');
+        if ([] === $removedArtifacts) {
+            return rex_view::info('<strong>' . rex_escape($title) . '</strong><br>' . rex_escape(rex_i18n::msg('zip_install_cleanup_report_none')));
+        }
+
+        $maxVisible = 20;
+        $visible = array_slice($removedArtifacts, 0, $maxVisible);
+
+        $listItems = '';
+        foreach ($visible as $entry) {
+            $listItems .= '<li><code>' . rex_escape($entry) . '</code></li>';
+        }
+
+        $remaining = count($removedArtifacts) - count($visible);
+        if ($remaining > 0) {
+            $listItems .= '<li>' . rex_escape(rex_i18n::msg('zip_install_cleanup_report_more', (string) $remaining)) . '</li>';
+        }
+
+        $body = '<strong>' . rex_escape($title) . '</strong>';
+        $body .= '<br>' . rex_escape(rex_i18n::msg('zip_install_cleanup_report_removed', (string) count($removedArtifacts)));
+        $body .= '<ul style="margin-top:8px; margin-bottom:0;">' . $listItems . '</ul>';
+
+        return rex_view::info($body);
     }
 
     /**
@@ -696,18 +935,18 @@ class ZipInstall
     /**
      * Get GitHub API Rate Limit
      *
-     * @return array|null Returns array with limit, remaining, reset or null on error
+    * @return array{limit: int, remaining: int, reset: int}|null
      */
     public function getRateLimit(): ?array
     {
-        $token = $this->addon->getConfig('github_token');
+        $token = (string) $this->addon->getConfig('github_token', '');
         
         $headers = [
             'User-Agent: REDAXOZipInstall/2.0',
             'Accept: application/vnd.github.v3+json'
         ];
         
-        if ($token) {
+        if ('' !== $token) {
             $headers[] = 'Authorization: Bearer ' . $token;
         }
         
@@ -726,11 +965,11 @@ class ZipInstall
             
             if ($response !== false) {
                 $data = json_decode($response, true);
-                if (isset($data['rate'])) {
+                if (isset($data['rate']) && is_array($data['rate'])) {
                     return [
-                        'limit' => $data['rate']['limit'],
-                        'remaining' => $data['rate']['remaining'],
-                        'reset' => $data['rate']['reset']
+                        'limit' => (int) ($data['rate']['limit'] ?? 0),
+                        'remaining' => (int) ($data['rate']['remaining'] ?? 0),
+                        'reset' => (int) ($data['rate']['reset'] ?? 0)
                     ];
                 }
             }

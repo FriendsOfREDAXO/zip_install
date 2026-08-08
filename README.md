@@ -55,6 +55,8 @@ Plugins werden automatisch in das entsprechende Verzeichnis des zugehörigen Add
 ## Wichtige Hinweise
 
 *   Das AddOn überschreibt vorhandene Dateien ohne Rückfrage.
+*   **Sicherheitsbereinigung:** Nach dem Entpacken werden aus Sicherheits- und Hygienegründen Versionsverwaltungs-, IDE- und Betriebssystem-Artefakte wie `.git`, `.github`, `.gitignore`, `.idea`, `.vscode` oder `.DS_Store` entfernt. Zusätzlich berücksichtigt das AddOn die Einträge aus `installer_ignore` der jeweiligen `package.yml`.
+*   Nach jedem Import zeigt ein Bereinigungsbericht transparent an, welche Dateien oder Ordner entfernt wurden. Prüfen Sie diesen Bericht insbesondere bei AddOns aus fremden Quellen.
 *   Es wird keine Installation oder Neuinstallation durchgeführt.
 *   Abhängigkeiten werden nicht geprüft.
 *   Die `update.php` des AddOns wird nicht ausgeführt.
@@ -259,8 +261,8 @@ protected function isValidUrl(string $url): bool
 
 **Funktionsweise:**
 
-1.  Führt eine `get_headers()` Anfrage durch.
-2.  Überprüft, ob der Statuscode `200` enthalten ist.
+1.  Führt über cURL eine `HEAD`-Anfrage mit Redirect-Unterstützung durch.
+2.  Akzeptiert erfolgreiche Antworten mit Statuscode `200` oder `302`.
 
 #### `downloadFile()`
 
@@ -283,12 +285,77 @@ Lädt eine Datei von einer URL herunter und speichert sie auf dem Server.
 
 **Funktionsweise:**
 
-1.  Verwendet `file_get_contents()` um den Inhalt der URL abzurufen.
+1.  Lädt den Inhalt über cURL mit Redirect-, Timeout- und TLS-Prüfung herunter.
 2.  Speichert den Inhalt in die angegebene Datei mit `rex_file::put()`.
 
 ### Zusammenfassung
 
 Die `ZipInstall` Klasse bietet eine umfassende Möglichkeit zur Installation von REDAXO Addons und Plugins per ZIP-Upload oder URL. Sie enthält Sicherheitsvorkehrungen (MIME-Type Überprüfung, eindeutige Dateinamen), um das Risiko von Sicherheitslücken zu minimieren und die Stabilität der Installation zu gewährleisten.
+
+## Entwicklung und Tests
+
+### Testaufbau
+
+Der Test unter `tests/installer_ignore_match_test.php` prüft die Patternlogik für `installer_ignore`. Er benötigt keinen REDAXO-Bootstrap: Die Klasse `ZipInstall` wird ohne Konstruktor instanziiert und der private Matcher gezielt über Reflection aufgerufen.
+
+Getestet werden insbesondere:
+
+* einfache Datei- und Ordnernamen wie `.github` oder `.gitignore`
+* rekursive Muster wie `tests/**`
+* Glob-Muster wie `docs/*.md`
+* Pfade in Unterverzeichnissen
+* negative Fälle, die nicht entfernt werden dürfen
+* der Schutz der zwingend erforderlichen `package.yml`
+
+Test aus dem AddOn-Verzeichnis starten:
+
+```bash
+php tests/installer_ignore_match_test.php
+```
+
+Der Test beendet sich bei Erfolg mit Exit-Code `0`, bei mindestens einem Fehler mit Exit-Code `1`. Neue Matcher-Regeln müssen immer durch mindestens einen positiven und einen negativen Testfall ergänzt werden.
+
+### Statische Analyse
+
+RexStan wird aus dem öffentlichen REDAXO-Verzeichnis ausgeführt. Bei einer lokalen Installation:
+
+```bash
+php redaxo/bin/console rexstan:analyze redaxo/src/addons/zip_install
+```
+
+Wird REDAXO in einem Container betrieben, muss derselbe Befehl im passenden PHP-/Web-Container und aus dessen öffentlichem REDAXO-Verzeichnis ausgeführt werden. Containername und Pfad hängen von der jeweiligen Entwicklungsumgebung ab.
+
+Alle PHP-Dateien können zusätzlich auf Syntaxfehler geprüft werden:
+
+```bash
+find . -name '*.php' -type f -print0 | xargs -0 -n1 php -l
+```
+
+Vor einem Release müssen Pattern-Test, RexStan und PHP-Syntaxprüfung ohne Fehler durchlaufen.
+
+### Wichtige Regeln für Änderungen
+
+* **Cleanup-Liste synchron halten:** Die Standard-Bereinigung in `ZipInstall::STRIP_DIR_NAMES` und `ZipInstall::STRIP_FILE_NAMES` entspricht der Default-Ignoreliste der `installer-action`. Änderungen müssen mit `installer-action/src/file.ts` abgeglichen werden.
+* **`installer_ignore` respektieren:** Zusätzliche Muster aus der `package.yml` des installierten AddOns werden nach dem Entpacken angewendet. Die `package.yml` selbst darf niemals entfernt werden.
+* **Entfernte Dateien transparent melden:** Jede Bereinigung muss im Bereinigungsbericht sichtbar sein. Bei neuen Regeln müssen verständliche relative Pfade ausgegeben werden.
+* **Upload und URL gleich behandeln:** Beide Eingangswege müssen dieselbe Validierung, Bereinigung, Installation und Ergebnismeldung verwenden. Gemeinsame Logik gehört in `ZipInstall::installZip()`.
+* **Dateisystem nach Installation synchronisieren:** Nach erfolgreichem Kopieren muss `rex_package_manager::synchronizeWithFileSystem()` ausgeführt werden, bevor `rex_addon::exists()` geprüft oder ein Install-Link erzeugt wird.
+* **Plugin-Keys beachten:** Bei einem Package-Key wie `parent/plugin` wird das Plugin unter `parent/plugins/plugin` abgelegt. Für AddOn-Erkennung und Install-Links ist der Parent-Key zu verwenden.
+* **REDAXO-APIs bevorzugen:** Für AddOn-Pfade, Dateien und Verzeichnisse `rex_path`, `rex_file` und `rex_dir` verwenden. Native PHP-Funktionen nur dort einsetzen, wo REDAXO keine passende API bereitstellt.
+* **Rückgabewerte defensiv prüfen:** Funktionen wie `ZipArchive::statIndex()`, `finfo_open()`, `curl_exec()` und `parse_url()` können `false` liefern. Diese Fälle müssen vor weiterer Verarbeitung behandelt werden.
+* **Keine Zugangsdaten protokollieren:** GitHub-Token dürfen weder in Meldungen noch im Logger oder in Exceptions ausgegeben werden.
+* **Version und Changelog pflegen:** Nutzerrelevante Änderungen erfordern eine Versionsanhebung in `package.yml` und einen Eintrag in `changelog.md`.
+
+### Manueller Workflow-Test
+
+Für Änderungen am Installationsablauf sollten mindestens diese Fälle im REDAXO-Backend geprüft werden:
+
+1. ZIP-Datei eines noch nicht vorhandenen AddOns hochladen und anschließend installieren.
+2. Dasselbe AddOn über eine GitHub-/ZIP-URL herunterladen.
+3. Bereits vorhandenes AddOn erneut herunterladen und den Reinstall-Link prüfen.
+4. Plugin mit Package-Key `parent/plugin` installieren.
+5. ZIP mit Standard-Artefakten (`.github`, `.gitignore`) und eigenem `installer_ignore` verwenden.
+6. Prüfen, ob der Bereinigungsbericht alle entfernten Einträge korrekt nennt.
 
 
 

@@ -29,15 +29,21 @@ if (rex_request_method() == 'post') {
             
             // Add direct installation link if addon was successfully installed
             if (isset($result['success']) && $result['success'] && $result['addon_key']) {
+                rex_package_manager::synchronizeWithFileSystem();
+
+                $addonKey = (string) $result['addon_key'];
+                $packageParts = explode('/', $addonKey, 2);
+                $packageKey = $packageParts[0];
+
                 // Always show installation link if addon was successfully extracted
-                if (rex_addon::exists($result['addon_key'])) {
-                    $addon = rex_addon::get($result['addon_key']);
+                if (rex_addon::exists($packageKey)) {
+                    $addon = rex_addon::get($packageKey);
                     
                     if (!$addon->isInstalled()) {
                         // Generate the correct installation link like the install addon
                         $installUrl = rex_url::currentBackendPage([
                             'page' => 'packages',
-                            'package' => $result['addon_key'],
+                            'package' => $packageKey,
                             'function' => 'install',
                             'rex-api-call' => 'package',
                             '_csrf_token' => rex_csrf_token::factory('rex_api_package')->getValue()
@@ -45,14 +51,14 @@ if (rex_request_method() == 'post') {
                         
                         echo '<div class="alert alert-success">';
                         echo '<h4><i class="fa fa-check-circle"></i> AddOn erfolgreich heruntergeladen</h4>';
-                        echo '<p>Das AddOn <strong>' . rex_escape($result['addon_key']) . '</strong> wurde erfolgreich entpackt und ist bereit zur Installation.</p>';
+                        echo '<p>Das AddOn <strong>' . rex_escape($addonKey) . '</strong> wurde erfolgreich entpackt und ist bereit zur Installation.</p>';
                         echo '<p><a href="' . $installUrl . '" class="btn btn-primary btn-lg"><i class="fa fa-download"></i> AddOn jetzt installieren</a></p>';
                         echo '</div>';
                     } else {
                         // Offer a direct reinstall action (same underlying action as install, different wording)
                         $reinstallUrl = rex_url::currentBackendPage([
                             'page' => 'packages',
-                            'package' => $result['addon_key'],
+                            'package' => $packageKey,
                             'function' => 'install',
                             'rex-api-call' => 'package',
                             '_csrf_token' => rex_csrf_token::factory('rex_api_package')->getValue()
@@ -60,7 +66,7 @@ if (rex_request_method() == 'post') {
 
                         echo '<div class="alert alert-info">';
                         echo '<h4><i class="fa fa-info-circle"></i> ' . rex_i18n::msg('zip_install_downloaded_installed_title') . '</h4>';
-                        echo '<p>' . rex_i18n::msg('zip_install_downloaded_installed_message', rex_escape($result['addon_key'])) . '</p>';
+                        echo '<p>' . rex_i18n::msg('zip_install_downloaded_installed_message', rex_escape($addonKey)) . '</p>';
                         echo '<p><a href="' . $reinstallUrl . '" class="btn btn-warning btn-lg"><i class="fa fa-refresh"></i> ' . rex_i18n::msg('package_reinstall') . '</a></p>';
                         echo '</div>';
                     }
@@ -69,7 +75,7 @@ if (rex_request_method() == 'post') {
                     // This can happen with GitHub repos that have different folder structures
                     $installUrl = rex_url::currentBackendPage([
                         'page' => 'packages',
-                        'package' => $result['addon_key'],
+                        'package' => $packageKey,
                         'function' => 'install',
                         'rex-api-call' => 'package',
                         '_csrf_token' => rex_csrf_token::factory('rex_api_package')->getValue()
@@ -90,16 +96,20 @@ if (rex_request_method() == 'post') {
             if (isset($result['success']) && $result['success'] && $result['addon_key']) {
                 // Force addon detection refresh to ensure newly extracted addons are recognized
                 rex_package_manager::synchronizeWithFileSystem();
+
+                $addonKey = (string) $result['addon_key'];
+                $packageParts = explode('/', $addonKey, 2);
+                $packageKey = $packageParts[0];
                 
                 // Always show installation link if addon was successfully extracted
-                if (rex_addon::exists($result['addon_key'])) {
-                    $addon = rex_addon::get($result['addon_key']);
+                if (rex_addon::exists($packageKey)) {
+                    $addon = rex_addon::get($packageKey);
                     
                     if (!$addon->isInstalled()) {
                         // Generate the correct installation link like the install addon
                         $installUrl = rex_url::currentBackendPage([
                             'page' => 'packages',
-                            'package' => $result['addon_key'],
+                            'package' => $packageKey,
                             'function' => 'install',
                             'rex-api-call' => 'package',
                             '_csrf_token' => rex_csrf_token::factory('rex_api_package')->getValue()
@@ -107,14 +117,14 @@ if (rex_request_method() == 'post') {
                         
                         echo '<div class="alert alert-success">';
                         echo '<h4><i class="fa fa-check-circle"></i> AddOn erfolgreich heruntergeladen</h4>';
-                        echo '<p>Das AddOn <strong>' . rex_escape($result['addon_key']) . '</strong> wurde erfolgreich entpackt und ist bereit zur Installation.</p>';
+                        echo '<p>Das AddOn <strong>' . rex_escape($addonKey) . '</strong> wurde erfolgreich entpackt und ist bereit zur Installation.</p>';
                         echo '<p><a href="' . $installUrl . '" class="btn btn-primary btn-lg"><i class="fa fa-download"></i> AddOn jetzt installieren</a></p>';
                         echo '</div>';
                     } else {
                         // Offer a direct reinstall action (same underlying action as install, different wording)
                         $reinstallUrl = rex_url::currentBackendPage([
                             'page' => 'packages',
-                            'package' => $result['addon_key'],
+                            'package' => $packageKey,
                             'function' => 'install',
                             'rex-api-call' => 'package',
                             '_csrf_token' => rex_csrf_token::factory('rex_api_package')->getValue()
@@ -122,7 +132,7 @@ if (rex_request_method() == 'post') {
 
                         echo '<div class="alert alert-info">';
                         echo '<h4><i class="fa fa-info-circle"></i> ' . rex_i18n::msg('zip_install_downloaded_installed_title') . '</h4>';
-                        echo '<p>' . rex_i18n::msg('zip_install_downloaded_installed_message', rex_escape($result['addon_key'])) . '</p>';
+                        echo '<p>' . rex_i18n::msg('zip_install_downloaded_installed_message', rex_escape($addonKey)) . '</p>';
                         echo '<p><a href="' . $reinstallUrl . '" class="btn btn-warning btn-lg"><i class="fa fa-refresh"></i> ' . rex_i18n::msg('package_reinstall') . '</a></p>';
                         echo '</div>';
                     }
@@ -131,7 +141,7 @@ if (rex_request_method() == 'post') {
                     // This can happen with GitHub repos that have different folder structures
                     $installUrl = rex_url::currentBackendPage([
                         'page' => 'packages',
-                        'package' => $result['addon_key'],
+                        'package' => $packageKey,
                         'function' => 'install',
                         'rex-api-call' => 'package',
                         '_csrf_token' => rex_csrf_token::factory('rex_api_package')->getValue()

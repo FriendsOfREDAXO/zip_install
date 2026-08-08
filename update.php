@@ -9,10 +9,10 @@ if (rex_string::versionCompare($addon->getVersion(), '2.0.0', '<')) {
         // Try to delete the directory
         if (!rex_dir::delete($tmpDir)) {
             // If deletion fails, log a warning
-            rex_logger::factory()->warning('The temporary directory ' . $tmpDir . ' could not be deleted.');
+            rex_logger::factory()->warning('The temporary directory {directory} could not be deleted.', ['directory' => $tmpDir]);
         } else {
             // Log successful deletion as a notice
-            rex_logger::factory()->notice('The temporary directory ' . $tmpDir . ' has been successfully deleted.');
+            rex_logger::factory()->notice('The temporary directory {directory} has been successfully deleted.', ['directory' => $tmpDir]);
         }
         
         // Create new tmp directory

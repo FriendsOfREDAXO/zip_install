@@ -57,3 +57,8 @@ perm_general_zip_install[] = Berechtigungen für ZIP Upload/GitHub Installation
 # Messages for download when addon already exists
 zip_install_downloaded_installed_title = AddOn bereits installiert
 zip_install_downloaded_installed_message = Das AddOn {0} ist bereits installiert. Sie können es neu installieren, falls erforderlich.
+
+zip_install_cleanup_report_title = Bereinigungsbericht nach Entpacken
+zip_install_cleanup_report_none = Es wurden keine Dateien oder Ordner entfernt.
+zip_install_cleanup_report_removed = Entfernte Einträge: {0}
+zip_install_cleanup_report_more = ... und {0} weitere Einträge
